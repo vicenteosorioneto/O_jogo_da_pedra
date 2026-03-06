@@ -1,0 +1,43 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Unity user-specific settings
+UserSettings/
+
+# Addressables and generated project data
+Assets/AddressableAssetsData/*/*.bin*
+Assets/StreamingAssets/aa.meta
+Assets/StreamingAssets/aa/
+
+# Visual Studio / Rider
+.vs/
+.vscode/
+.idea/
+*.sln.iml
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity generated C# project files
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.dbg
+
+# OS files
+.DS_Store
+Thumbs.db
