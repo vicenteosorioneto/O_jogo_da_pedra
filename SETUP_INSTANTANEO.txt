@@ -1,0 +1,96 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║         🎮 SETUP INSTANTÂNEO - O SEGREDO DA PEDRA 🎮            ║
+║                                                                   ║
+║           Sem setup manual! Tudo automático!                     ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+
+⚡ SETUP EM 3 PASSOS (1 MINUTO):
+
+1️⃣  Abra o Unity
+
+2️⃣  Crie uma cena VAZIA (File → New Scene)
+    - Não precisa de nada
+
+3️⃣  Crie um GameObject vazio:
+    - Right-click na Hierarchy → Create Empty
+    - (não precisa renomear)
+
+4️⃣  Attach o script SceneGenerator.cs:
+    - Drag o script para o GameObject
+    - OU: Add Component → SceneGenerator
+
+5️⃣  PRESSIONE ▶️ PLAY
+
+═══════════════════════════════════════════════════════════════════
+
+✅ PRONTO!
+
+Tudo será criado automaticamente:
+  ✓ Player (com câmera)
+  ✓ 3 Fragmentos
+  ✓ Maria Sangrenta
+  ✓ Espelho (Ritual)
+  ✓ Saída da escola
+  ✓ Iluminação
+  ✓ Ambiente
+  ✓ GameManager
+  ✓ InputManager
+
+═══════════════════════════════════════════════════════════════════
+
+🎮 CONTROLES:
+
+WASD            → Mover
+Mouse           → Olhar
+Shift + WASD    → Correr
+E               → Interagir
+ESC             → Liberar mouse
+
+
+═══════════════════════════════════════════════════════════════════
+
+📝 OUTPUT NO CONSOLE:
+
+Você verá mensagens tipo:
+  "🎮 Gerando cena automaticamente..."
+  "✓ Player criado"
+  "✓ Fragmentos criados"
+  "✓ Maria Sangrenta criada"
+  "✅ Cena gerada com sucesso!"
+
+═══════════════════════════════════════════════════════════════════
+
+🎯 FLUXO DO JOGO:
+
+1. Spawna no centro da "escola"
+2. Vê 3 fragmentos espalhados (cubos vermelhos)
+3. Coleta os 3 fragmentos (E)
+4. Vai ao espelho (quadrado cinza à frente)
+5. Interage com o espelho (E) para iniciar o ritual
+6. Maria (cubo vermelho escuro) aparece
+7. Espelho brilha (luz verde)
+8. FINAL BOM! ✅
+
+OU: Tenta sair (porta verde) sem pegar os fragmentos
+    → FINAL RUIM ❌
+
+═══════════════════════════════════════════════════════════════════
+
+🚨 SE ALGO NÃO FUNCIONAR:
+
+❓ "O script não mapeia os campos corretamente"
+  → Ignore, está tudo bem! O SceneGenerator cuida disso com Reflection
+
+❓ "Aparece exceção no console"
+  → Verifique o nome exato dos campos nos scripts
+  → Execute de novo pressionando Play
+
+❓ "Player não se move"
+  → Verifique se a cena está vazia antes de gerar
+
+É sério mesmo só isso! 🎉
+
+═══════════════════════════════════════════════════════════════════

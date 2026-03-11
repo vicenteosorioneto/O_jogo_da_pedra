@@ -1,0 +1,173 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║              🎮 O SEGREDO DA PEDRA - MVP PRONTO 🎮               ║
+║                        Instrução Rápida!                         ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+
+✅ O QUE FOI CRIADO:
+
+7 Scripts prontos para rodar:
+  ✓ PlayerController.cs   - Controla o jogador
+  ✓ GameManager.cs       - Gerencia o jogo inteiro
+  ✓ FragmentCollector.cs - Coleta fragmentos
+  ✓ GhostAI.cs           - Maria Sangrenta persegue
+  ✓ RitualManager.cs     - Ritual de selamento
+  ✓ ExitManager.cs       - Saída da escola
+  ✓ InputManager.cs      - Entrada e debug
+  ✓ IInteractable.cs     - Interface de interação
+
+Localização: Assets/Scripts/
+
+
+⚡ SETUP RÁPIDO (30 MINUTOS):
+
+1️⃣  ABRA O UNITY E CRIE NOVA CENA
+
+
+2️⃣  CRIE O PLAYER:
+    • Crie GameObject vazio "Player"
+    • Adicione Rigidbody (Gravity ON, Continuous Collision)
+    • Adicione Capsule Collider
+    • Adicione PlayerController.cs
+    • Dê tag "Player"
+    • Crie GameObject filho "PlayerCamera" com Camera
+      - Position: (0, 0.6, 0)
+    • Assign PlayerCamera no PlayerController
+
+
+3️⃣  CRIE O GAMEMANAGER:
+    • GameObject vazio "GameManager"
+    • Attach GameManager.cs
+    
+
+4️⃣  CRIE 3 FRAGMENTOS:
+    Para cada um:
+    • Cube com visual chamado "Fragment_X"
+    • Adicione Sphere Collider
+    • Attach FragmentCollector.cs
+    • Ajuste fragmentID (1, 2, 3)
+    • Posicione em 3 locais diferentes
+
+
+5️⃣  CRIE MARIA SANGRENTA:
+    • Cube vermelho "GhostEntity"
+    • Adicione Rigidbody (Gravity OFF)
+    • Adicione Capsule Collider
+    • Attach GhostAI.cs
+    • Assign Player field
+    • Posicione fora da vista
+
+
+6️⃣  CRIE O ESPELHO:
+    • Plane ou Quad "Mirror"
+    • Adicione RitualManager.cs
+    • Adicione Light (Point ou Spot)
+    • Deixe o Light desligado
+    
+
+7️⃣  CRIE SAÍDA:
+    • Cube "Exit"
+    • Adicione Box Collider (isTrigger ON)
+    • Attach ExitManager.cs
+
+
+8️⃣  CRIE AMBIENTE BÁSICO:
+    • Delete Main Camera (usando PlayerCamera agora)
+    • Adicione Plane para chão
+    • Adicione Directional Light
+    • Crie paredes simples com Cubes
+
+
+9️⃣  ADICIONE INPUT MANAGER:
+    • GameObject vazio "InputManager"
+    • Attach InputManager.cs
+    • Assign Player field
+
+    
+🔟 PRESSIONE PLAY ▶️ E TESTE!
+
+
+═══════════════════════════════════════════════════════════════════
+
+🎮 CONTROLES DO JOGO:
+
+  WASD                    → Mover
+  Mouse                   → Rotacionar câmera
+  Shift + WASD            → Correr rápido
+  E                       → Interagir (pegar fragmentos, ritual)
+  ESC                     → Release mouse (debug)
+  
+  F1                      → Ver estado do jogo (debug)
+  F2                      → Forçar Final Bom (debug)
+  F3                      → Forçar Final Ruim (debug)
+
+
+═══════════════════════════════════════════════════════════════════
+
+📋 FLUXO ESPERADO DO MVP:
+
+1. Jogador spawna na cena
+2. Vê mensagem: "Jogo iniciado! Você está preso na escola..."
+3. Explora a escola em busca de 3 fragmentos
+4. Interage com fragmentos (Press E)
+5. A cada X segundos, Maria Sangrenta aparece aleatoriamente
+6. Quando coleta todos 3 fragmentos, recebe mensagem
+7. Vai ao espelho e interage (Press E) para ritual
+8. Se completou o ritual → FINAL BOM ✅
+9. Se tentou sair sem ritual → FINAL RUIM ❌
+
+
+═══════════════════════════════════════════════════════════════════
+
+👻 O QUE ACONTECE NO JOGO:
+
+✓ Maria Sangrenta spawn aleatório a cada 15 segundos
+✓ Detecta jogador em 20m de distância
+✓ Persegue o jogador
+✓ Jumpscare quando chega perto (2m)
+✓ Ao completar ritual, é aprisionada
+✓ 2 Finais brancos criados (leia o Console para ver)
+
+
+═══════════════════════════════════════════════════════════════════
+
+❌ PROBLEMAS COMUNS:
+
+❓ "NullReferenceException em PlayerController"
+  → Verifique se PlayerCamera foi assignado no Inspector
+
+❓ "GhostAI não funciona"
+  → Verifique se Player tem tag "Player"
+  → Verifique se Player foi assignado em GhostAI
+
+❓ "Fragmentos não somem ao pegar"
+  → Certifique-se que FragmentCollector.cs tem fragmentID (1, 2 ou 3)
+
+❓ "Ritual não funciona"
+  → Verifique se coletou todos os 3 fragmentos
+  → Veja Console para mensagens de debug
+
+
+═══════════════════════════════════════════════════════════════════
+
+🎯 PRÓXIMOS PASSOS (FASE 2):
+
+  ⚪ Documentos para ler (jornal, diário)
+  ⚪ Efeitos sonoros (footsteps, scary sounds)
+  ⚪ Melhorar gráficos (texturas, lighting)
+  ⚪ Animações de Maria Sangrenta
+  ⚪ UI com inventário de fragmentos
+  ⚪ Checkpoints e save system
+  ⚪ Mais ambientes (corredor, banheiro, biblioteca)
+  ⚪ Cinematics pros finais
+
+═══════════════════════════════════════════════════════════════════
+
+📞 DÚVIDAS?
+
+Verifique o arquivo GUIA_CONFIGURACAO_MVP.txt para instruções
+mais detalhadas de cada passo!
+
+═══════════════════════════════════════════════════════════════════

@@ -1,0 +1,139 @@
+═══════════════════════════════════════════════════════════
+    O SEGREDO DA PEDRA - GUIA DE CONFIGURAÇÃO DO MVP
+═══════════════════════════════════════════════════════════
+
+📁 SCRIPTS CRIADOS:
+├── PlayerController.cs      → Movimento e interações
+├── GameManager.cs           → Sistema central de jogo
+├── FragmentCollector.cs     → Coleta dos 3 fragmentos
+├── GhostAI.cs              → IA de Maria Sangrenta
+├── RitualManager.cs        → Ritual final de aprisionamento
+├── ExitManager.cs          → Saída da escola
+└── IInteractable.cs        → Interface de interação
+
+═══════════════════════════════════════════════════════════
+
+🎮 PASSO A PASSO PARA CONFIGURAR NO UNITY:
+
+1. TAG "Player"
+   ───────────────────────────────────────────
+   Edit → Project Settings → Tags and Layers
+   Adicione a tag "Player"
+
+2. CRIAR PLAYER (Câmera + Movimento)
+   ───────────────────────────────────────────
+   a) Crie um GameObject vazio: "Player"
+   b) Adicione:
+      - Rigidbody (Body Type: Dynamic, Gravity: ON, Collision Detection: Continuous)
+      - Capsule Collider
+      - Attach PlayerController.cs
+      - Atribua a tag "Player"
+   
+   c) Crie um GameObject filho: "PlayerCamera"
+      - Adicione Camera
+      - Position: (0, 0.6, 0)
+      - Attach ao campo "playerCamera" do PlayerController
+
+3. CRIAR GAMEMANAGER
+   ───────────────────────────────────────────
+   a) Crie um GameObject vazio: "GameManager"
+   b) Attach GameManager.cs
+   c) Mantenha na cena (não destruir entre cenas)
+
+4. CRIAR FRAGMENTOS (3x)
+   ───────────────────────────────────────────
+   Para cada fragmento (1, 2, 3):
+   
+   a) Crie um Cube ou GameObject visual
+   b) Renomeie: "Fragment_1", "Fragment_2", "Fragment_3"
+   c) Adicione:
+      - Sphere Collider (isTrigger: OFF, inicialmente)
+      - FragmentCollector.cs
+   d) Ajuste o fragmentID no script (1, 2 ou 3)
+   e) Posicione em lugares diferentes da cena
+      
+   Exemplo de locais: 
+   - Biblioteca
+   - Corredor escuro
+   - Sala de aula
+
+5. CRIAR MARIA SANGRENTA (Ghost)
+   ───────────────────────────────────────────
+   a) Crie um Cube vermelho escuro ou modelo 3D
+   b) Renomeie: "MariasSangrenta" 
+   c) Adicione:
+      - Rigidbody (Use Gravity: OFF)
+      - Capsule Collider
+      - GhostAI.cs
+   d) Posicione fora da vista inicial
+   e) Assign Player no campo "player" do GhostAI
+
+6. CRIAR ESPELHO (Ritual)
+   ───────────────────────────────────────────
+   a) Crie um Quad ou plano: "Mirror"
+   b) Adicione:
+      - Box Collider (isTrigger: OFF)
+      - RitualManager.cs
+      - Light (spot ou directional - para efeito)
+   c) Posicione no banheiro (ou área ritual)
+   d) O Light começa desligado
+
+7. CRIAR SAÍDA (Exit)
+   ───────────────────────────────────────────
+   a) Crie um Cube: "SchoolExit"
+   b) Adicione:
+      - Box Collider (isTrigger: ON)
+      - ExitManager.cs
+   c) Posicione na saída da escola
+
+8. AMBIENTE E ILUMINAÇÃO
+   ───────────────────────────────────────────
+   a) Main Camera: DELETE (usar PlayerCamera)
+   b) Directional Light: ajuste para ambiente escuro
+   c) Adicione Plane para chão
+   d) Crie paredes simples com Cubes
+
+═══════════════════════════════════════════════════════════
+
+🎯 FLUXO DO JOGO:
+
+1. Jogador entra na cena
+2. GameManager inicializa
+3. Jogador explora e coleta 3 fragmentos (Press E)
+4. Quando coleta todos, recebe mensagem
+5. Jogador vai ao espelho e interage (Press E)
+6. Ritual começa → Final Bom (vitória)
+7. OU: Jogador tenta sair sem fragmentos → Final Ruim
+
+═══════════════════════════════════════════════════════════
+
+👻 EVENTOS DURANTE O JOGO:
+
+✓ Maria Sangrenta aparece aleatoriamente a cada 15 segundos
+✓ Quando detecta o jogador (20m), começa a perseguir
+✓ Wenn chegar perto (2m), jumpscare
+✓ Som de piscar de luzes (implementar som depois)
+
+═══════════════════════════════════════════════════════════
+
+🔧 CONTROLES DO MVP:
+
+WASD           → Movimento
+Mouse          → Rotação câmera
+Shift + WASD   → Correr
+E              → Interagir (pegar fragmentos, ritual, sair)
+
+═══════════════════════════════════════════════════════════
+
+📝 PRÓXIMOS PASSOS (Pós-MVP):
+
+✓ Adicionar som (footsteps, jumpscare, winds)
+✓ Adicionar documentos para ler (jornal, diário)
+✓ Melhorar visual (texturas, efeitos de sombra)
+✓ Adicionar animações (Maria Sangrenta)
+✓ Implementar saves/checkpoints
+✓ Adicionar mais salas e ambientes
+✓ Cinematics para intros/finais
+✓ UI melhorado com inventário de fragmentos
+
+═══════════════════════════════════════════════════════════
