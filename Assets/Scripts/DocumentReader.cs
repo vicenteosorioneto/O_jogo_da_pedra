@@ -1,12 +1,9 @@
 using UnityEngine;
 
-/// <summary>
-/// DocumentReader permite que o jogador leia documentos espalhados pela escola.
-/// Implementar nos próximos passos.
-/// </summary>
 public class DocumentReader : MonoBehaviour, IInteractable
 {
     [SerializeField] private string documentTitle = "Documento";
+    [TextArea(5, 10)]
     [SerializeField] private string documentContent = "Conteúdo do documento aqui...";
     [SerializeField] private int documentID = 1;
 
@@ -20,6 +17,10 @@ public class DocumentReader : MonoBehaviour, IInteractable
     public void Interact()
     {
         DisplayDocument();
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ReadDocument(documentID);
+        }
     }
 
     void DisplayDocument()

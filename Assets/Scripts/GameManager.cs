@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
     private List<int> collectedFragmentIDs = new List<int>();
     private bool ritualInProgress = false;
     private bool gameEnded = false;
+    private List<int> readDocumentIDs = new List<int>();
+    [SerializeField] private int documentsNeeded = 3;
 
     void Awake()
     {
@@ -81,6 +83,8 @@ public class GameManager : MonoBehaviour
 
         ritualInProgress = false;
         EndGameGoodEnding();
+        // Considerar adicionar uma flag específica para ritual concluído se 'gameEnded' não for suficiente
+        // Por exemplo: ritualSuccessfullyCompleted = true;
     }
 
     public void EndGameGoodEnding()
@@ -127,5 +131,38 @@ public class GameManager : MonoBehaviour
     public bool IsGameEnded()
     {
         return gameEnded;
+    }
+
+    public bool IsRitualInProgress()
+    {
+        return ritualInProgress;
+    }
+
+    public bool IsRitualCompleted()
+    {
+        return gameEnded && !ritualInProgress; // Ritual completed implies game ended and not in progress
+    }
+
+    public void ReadDocument(int documentID)
+    {
+        if (!readDocumentIDs.Contains(documentID))
+        {
+            readDocumentIDs.Add(documentID);
+            Debug.Log($"Documento {documentID} lido. Total: {readDocumentIDs.Count}/{documentsNeeded}");
+            if (readDocumentIDs.Count >= documentsNeeded)
+            {
+                Debug.Log("Todos os documentos informativos foram lidos! Você sabe o que fazer agora.");
+            }
+        }
+    }
+
+    public bool HasReadDocument(int documentID)
+    {
+        return readDocumentIDs.Contains(documentID);
+    }
+
+    public bool HasReadAllDocuments()
+    {
+        return readDocumentIDs.Count >= documentsNeeded;
     }
 }

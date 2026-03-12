@@ -14,6 +14,11 @@ public class GhostAI : MonoBehaviour
     private bool isChasing = false;
     private float timeSinceLastAppearance = 0f;
     private float lastJumpscareTime = -999f;
+    private bool isRitualAttacking = false;
+    private Vector3 ritualMirrorPosition;
+    [SerializeField] private float ritualAttackSpeed = 4f;
+    [SerializeField] private float repelForce = 2f;
+    private GameManager gameManager;
 
     void Start()
     {
@@ -21,13 +26,20 @@ public class GhostAI : MonoBehaviour
         if (player == null)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
+        gameManager = GameManager.Instance;
         StartCoroutine(RandomAppearances());
     }
 
     void FixedUpdate()
     {
-        if (player == null || GameManager.Instance == null || GameManager.Instance.IsGameEnded())
+        if (player == null || gameManager == null || gameManager.IsGameEnded())
             return;
+
+        if (isRitualAttacking)
+        {
+            RitualAttackBehavior();
+            return;
+        }
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
@@ -54,6 +66,12 @@ public class GhostAI : MonoBehaviour
         rb.linearVelocity = directionToPlayer * chaseSpeed;
     }
 
+    void RitualAttackBehavior()
+    {
+        Vector2 directionToMirror = ((Vector2)ritualMirrorPosition - (Vector2)transform.position).normalized;
+        rb.linearVelocity = directionToMirror * ritualAttackSpeed;
+    }
+
     void Jumpscare()
     {
         if (Time.time < lastJumpscareTime + jumpscareCooldown)
@@ -66,7 +84,7 @@ public class GhostAI : MonoBehaviour
 
         if (GameHUD.Instance != null)
         {
-            GameHUD.Instance.TriggerJumpscare(0.75f, 0.25f);
+            GameHUD.Instance.TriggerJumpscare(jumpscareCooldown, 0.25f);
         }
         
         // Efeito visual (piscar)
@@ -84,7 +102,7 @@ public class GhostAI : MonoBehaviour
 
     IEnumerator RandomAppearances()
     {
-        while (GameManager.Instance != null && !GameManager.Instance.IsGameEnded())
+        while (gameManager != null && !gameManager.IsGameEnded() && !gameManager.IsRitualInProgress())
         {
             yield return new WaitForSeconds(appearanceInterval);
 
@@ -106,5 +124,29 @@ public class GhostAI : MonoBehaviour
     public void SetPlayer(Transform playerTransform)
     {
         player = playerTransform;
+    }
+
+    public void StartRitualAttack(Vector3 mirrorPosition)
+    {
+        isRitualAttacking = true;
+        ritualMirrorPosition = mirrorPosition;
+        rb.linearVelocity = Vector2.zero; // Parar qualquer movimento anterior
+        Debug.Log("Maria Sangrenta está focada no espelho!");
+    }
+
+    public void RepelGhost()
+    {
+        if (isRitualAttacking)
+        {
+            Vector2 directionFromMirror = ((Vector2)transform.position - (Vector2)ritualMirrorPosition).normalized;
+            rb.AddForce(directionFromMirror * repelForce, ForceMode2D.Impulse);
+            Debug.Log("Maria Sangrenta repelida pela luz!");
+        }
+    }
+
+    public void StopRitualAttack()
+    {
+        isRitualAttacking = false;
+        Debug.Log("Maria Sangrenta parou o ataque ritualístico.");
     }
 }

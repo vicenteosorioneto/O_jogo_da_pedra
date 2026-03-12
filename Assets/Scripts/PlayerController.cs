@@ -211,4 +211,20 @@ public class PlayerController : MonoBehaviour
     {
         return isExhausted;
     }
+
+    public bool IsFlashlightOn()
+    {
+        return flashlight != null && flashlight.enabled;
+    }
+
+    public Vector2 GetFlashlightDirection()
+    {
+        // Assuming flashlight points in the last movement direction
+        return lastInteractionDirection;
+    }
+
+    public Light GetFlashlight()
+    {
+        return flashlight;
+    }
 }

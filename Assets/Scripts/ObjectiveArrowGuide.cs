@@ -4,6 +4,7 @@ public class ObjectiveArrowGuide : MonoBehaviour
 {
     enum ObjectiveState
     {
+        Documents,
         Fragment,
         Ritual,
         None
@@ -21,12 +22,14 @@ public class ObjectiveArrowGuide : MonoBehaviour
     private AudioSource guideAudio;
     private AudioClip fragmentPingClip;
     private AudioClip ritualPingClip;
+    private AudioClip documentPingClip;
 
     private ObjectiveState currentState = ObjectiveState.None;
     private string currentObjectiveText = "Explore a escola";
     private float currentObjectiveDistance = 0f;
     private ObjectiveState lastAnnouncedState = ObjectiveState.None;
 
+    private readonly Color documentColor = new Color(0.8f, 0.8f, 0.8f, 0.9f); // Cor para documentos
     private readonly Color fragmentColor = new Color(1f, 0.78f, 0.22f, 0.9f);
     private readonly Color ritualColor = new Color(0.3f, 1f, 0.55f, 0.92f);
 
@@ -91,7 +94,9 @@ public class ObjectiveArrowGuide : MonoBehaviour
         float distance = direction.magnitude;
         currentObjectiveDistance = distance;
 
-        if (currentState == ObjectiveState.Fragment)
+        if (currentState == ObjectiveState.Documents)
+            currentObjectiveText = "Encontre os documentos para entender a lenda";
+        else if (currentState == ObjectiveState.Fragment)
             currentObjectiveText = "Colete o fragmento mais próximo";
         else if (currentState == ObjectiveState.Ritual)
             currentObjectiveText = "Vá ao Espelho do Ritual";
@@ -107,7 +112,11 @@ public class ObjectiveArrowGuide : MonoBehaviour
         direction.Normalize();
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
-        SetArrowColor(currentState == ObjectiveState.Ritual ? ritualColor : fragmentColor);
+        Color arrowColor = documentColor;
+        if (currentState == ObjectiveState.Fragment) arrowColor = fragmentColor;
+        else if (currentState == ObjectiveState.Ritual) arrowColor = ritualColor;
+
+        SetArrowColor(arrowColor);
         SetArrowsActive(true);
 
         for (int i = 0; i < arrowTransforms.Length; i++)
@@ -121,37 +130,61 @@ public class ObjectiveArrowGuide : MonoBehaviour
 
     Transform ResolveCurrentTarget(out ObjectiveState state)
     {
+        // Primeiro, verificar se todos os documentos foram lidos
+        if (GameManager.Instance != null && !GameManager.Instance.HasReadAllDocuments())
+        {
+            DocumentReader[] documents = FindObjectsOfType<DocumentReader>();
+            Transform nearestDocument = null;
+            float bestDistance = float.MaxValue;
+
+            foreach (DocumentReader doc in documents)
+            {
+                if (doc != null && !GameManager.Instance.HasReadDocument(doc.documentID))
+                {
+                    float distance = Vector2.Distance(player.position, doc.transform.position);
+                    if (distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        nearestDocument = doc.transform;
+                    }
+                }
+            }
+            state = nearestDocument != null ? ObjectiveState.Documents : ObjectiveState.None;
+            return nearestDocument;
+        }
+
+        // Se os documentos foram lidos, verificar os fragmentos
+        if (GameManager.Instance != null && !GameManager.Instance.HasAllFragments())
+        {
+            MirrorFragment[] fragments = FindObjectsOfType<MirrorFragment>(); // Usar MirrorFragment
+            Transform nearest = null;
+            float bestDistance = float.MaxValue;
+
+            foreach (MirrorFragment fragment in fragments)
+            {
+                if (fragment != null)
+                {
+                    float distance = Vector2.Distance(player.position, fragment.transform.position);
+                    if (distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        nearest = fragment.transform;
+                    }
+                }
+            }
+            state = nearest != null ? ObjectiveState.Fragment : ObjectiveState.None;
+            return nearest;
+        }
+
+        // Se todos os fragmentos foram coletados, guiar para o ritual
         if (GameManager.Instance != null && GameManager.Instance.HasAllFragments())
         {
             state = ObjectiveState.Ritual;
             return mirror;
         }
 
-        FragmentCollector[] fragments = Object.FindObjectsByType<FragmentCollector>(FindObjectsSortMode.None);
-        if (fragments == null || fragments.Length == 0)
-        {
-            state = ObjectiveState.Ritual;
-            return mirror;
-        }
-
-        Transform nearest = null;
-        float bestDistance = float.MaxValue;
-
-        for (int i = 0; i < fragments.Length; i++)
-        {
-            if (fragments[i] == null)
-                continue;
-
-            float distance = Vector2.Distance(player.position, fragments[i].transform.position);
-            if (distance < bestDistance)
-            {
-                bestDistance = distance;
-                nearest = fragments[i].transform;
-            }
-        }
-
-        state = nearest != null ? ObjectiveState.Fragment : ObjectiveState.None;
-        return nearest;
+        state = ObjectiveState.None;
+        return null;
     }
 
     void BuildArrows()
@@ -177,7 +210,7 @@ public class ObjectiveArrowGuide : MonoBehaviour
             arrowRenderers[i] = renderer;
         }
 
-        SetArrowColor(fragmentColor);
+        SetArrowColor(documentColor); // Cor inicial para documentos
     }
 
     void SetupAudio()
@@ -190,6 +223,7 @@ public class ObjectiveArrowGuide : MonoBehaviour
 
         fragmentPingClip = CreatePingClip(760f, 0.12f);
         ritualPingClip = CreatePingClip(520f, 0.2f);
+        documentPingClip = CreatePingClip(900f, 0.1f); // Novo som para documentos
     }
 
     void PlayObjectivePing(ObjectiveState state)
@@ -197,11 +231,29 @@ public class ObjectiveArrowGuide : MonoBehaviour
         if (guideAudio == null)
             return;
 
-        AudioClip clip = state == ObjectiveState.Ritual ? ritualPingClip : fragmentPingClip;
+        AudioClip clip = null;
+        float pitch = 1f;
+
+        switch (state)
+        {
+            case ObjectiveState.Documents:
+                clip = documentPingClip;
+                pitch = 1.2f;
+                break;
+            case ObjectiveState.Fragment:
+                clip = fragmentPingClip;
+                pitch = 1.08f;
+                break;
+            case ObjectiveState.Ritual:
+                clip = ritualPingClip;
+                pitch = 0.9f;
+                break;
+        }
+
         if (clip == null)
             return;
 
-        guideAudio.pitch = state == ObjectiveState.Ritual ? 0.9f : 1.08f;
+        guideAudio.pitch = pitch;
         guideAudio.PlayOneShot(clip, 1f);
     }
 
