@@ -32,4 +32,9 @@ public class FragmentCollector : MonoBehaviour, IInteractable
     {
         return fragmentID;
     }
+
+    public void SetFragmentID(int id)
+    {
+        fragmentID = id;
+    }
 }

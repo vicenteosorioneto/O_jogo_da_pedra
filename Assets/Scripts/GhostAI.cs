@@ -42,14 +42,14 @@ public class GhostAI : MonoBehaviour
         else
         {
             isChasing = false;
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
         }
     }
 
     void ChasePlayer()
     {
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
-        rb.velocity = directionToPlayer * chaseSpeed;
+        rb.linearVelocity = directionToPlayer * chaseSpeed;
     }
 
     void Jumpscare()
@@ -89,5 +89,10 @@ public class GhostAI : MonoBehaviour
     public bool IsChasing()
     {
         return isChasing;
+    }
+
+    public void SetPlayer(Transform playerTransform)
+    {
+        player = playerTransform;
     }
 }

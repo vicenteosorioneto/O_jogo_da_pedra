@@ -81,8 +81,7 @@ public class SceneGenerator : MonoBehaviour
         // Chão
         GameObject ground = new GameObject("Ground");
         ground.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Plane.fbx");
-        ground.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Standard"));
-        ground.GetComponent<Renderer>().material.color = new Color(0.2f, 0.2f, 0.2f);
+        ground.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.2f, 0.2f, 0.2f));
         ground.AddComponent<BoxCollider>();
         ground.transform.localScale = new Vector3(10, 1, 10);
 
@@ -99,8 +98,7 @@ public class SceneGenerator : MonoBehaviour
     {
         GameObject wall = new GameObject(name);
         wall.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-        wall.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Standard"));
-        wall.GetComponent<Renderer>().material.color = new Color(0.3f, 0.3f, 0.3f);
+        wall.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.3f, 0.3f, 0.3f));
         wall.AddComponent<BoxCollider>();
         wall.transform.position = position;
         wall.transform.localScale = scale;
@@ -134,7 +132,10 @@ public class SceneGenerator : MonoBehaviour
 
         // Assignar no PlayerController
         PlayerController pc = player.GetComponent<PlayerController>();
-        pc.GetComponent<PlayerController>().SetCamera(cam);
+        var playerCameraField = typeof(PlayerController).GetField("playerCamera",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (playerCameraField != null)
+            playerCameraField.SetValue(pc, cam);
 
         player.transform.position = new Vector3(0, 1, -3);
 
@@ -166,8 +167,7 @@ public class SceneGenerator : MonoBehaviour
             new Vector3(0, 0.5f, -4)
         };
 
-        Material fragmentMat = new Material(Shader.Find("Standard"));
-        fragmentMat.color = new Color(0.8f, 0.2f, 0.2f); // Vermelho
+        Material fragmentMat = CreateDefaultMaterial(new Color(0.8f, 0.2f, 0.2f)); // Vermelho
 
         for (int i = 0; i < 3; i++)
         {
@@ -181,7 +181,10 @@ public class SceneGenerator : MonoBehaviour
             collider.radius = 0.3f;
 
             FragmentCollector fc = fragment.AddComponent<FragmentCollector>();
-            fc.SetFragmentID(i + 1);
+            var fragmentIdField = typeof(FragmentCollector).GetField("fragmentID",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fragmentIdField != null)
+                fragmentIdField.SetValue(fc, i + 1);
 
             fragment.transform.position = positions[i];
             fragment.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
@@ -195,8 +198,7 @@ public class SceneGenerator : MonoBehaviour
         GameObject ghost = new GameObject("MariasSangrenta");
         
         ghost.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-        ghost.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Standard"));
-        ghost.GetComponent<Renderer>().material.color = new Color(0.5f, 0, 0); // Vermelho escuro
+        ghost.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.5f, 0, 0)); // Vermelho escuro
 
         CapsuleCollider collider = ghost.AddComponent<CapsuleCollider>();
         collider.height = 2;
@@ -206,7 +208,11 @@ public class SceneGenerator : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
         GhostAI ghostAI = ghost.AddComponent<GhostAI>();
-        ghostAI.SetPlayer(GameObject.FindGameObjectWithTag("Player").transform);
+        Transform playerTransform = GameObject.FindGameObjectWithTag("Player")?.transform;
+        var playerField = typeof(GhostAI).GetField("player",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (playerField != null)
+            playerField.SetValue(ghostAI, playerTransform);
 
         ghost.transform.position = new Vector3(5, 1, 5);
         ghost.transform.localScale = new Vector3(0.8f, 2, 0.8f);
@@ -219,8 +225,7 @@ public class SceneGenerator : MonoBehaviour
         GameObject mirror = new GameObject("Mirror");
         
         mirror.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
-        mirror.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Standard"));
-        mirror.GetComponent<Renderer>().material.color = new Color(0.7f, 0.7f, 0.7f); // Cinza espelho
+        mirror.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.7f, 0.7f, 0.7f)); // Cinza espelho
 
         BoxCollider collider = mirror.AddComponent<BoxCollider>();
         collider.size = new Vector3(1, 1.5f, 0.1f);
@@ -249,8 +254,7 @@ public class SceneGenerator : MonoBehaviour
         GameObject exit = new GameObject("SchoolExit");
         
         exit.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-        exit.AddComponent<MeshRenderer>().material = new Material(Shader.Find("Standard"));
-        exit.GetComponent<Renderer>().material.color = new Color(0, 0.5f, 0); // Verde
+        exit.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0, 0.5f, 0)); // Verde
 
         BoxCollider collider = exit.AddComponent<BoxCollider>();
         collider.isTrigger = true;
@@ -262,44 +266,17 @@ public class SceneGenerator : MonoBehaviour
 
         Debug.Log("✓ Saída criada");
     }
-}
 
-// Extensão para PlayerController
-public partial class PlayerController : MonoBehaviour
-{
-    private Camera playerCamera;
-
-    public void SetCamera(Camera cam)
+    Material CreateDefaultMaterial(Color color)
     {
-        playerCamera = cam;
-        // Usar reflection para assignar o campo private
-        System.Reflection.FieldInfo field = typeof(PlayerController).GetField("playerCamera", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (field != null)
-            field.SetValue(this, cam);
-    }
-}
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+            shader = Shader.Find("Standard");
+        if (shader == null)
+            shader = Shader.Find("Sprites/Default");
 
-// Extensão para FragmentCollector
-public partial class FragmentCollector : MonoBehaviour
-{
-    public void SetFragmentID(int id)
-    {
-        System.Reflection.FieldInfo field = typeof(FragmentCollector).GetField("fragmentID", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (field != null)
-            field.SetValue(this, id);
-    }
-}
-
-// Extensão para GhostAI
-public partial class GhostAI : MonoBehaviour
-{
-    public void SetPlayer(Transform playerTransform)
-    {
-        System.Reflection.FieldInfo field = typeof(GhostAI).GetField("player", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (field != null)
-            field.SetValue(this, playerTransform);
+        Material material = new Material(shader);
+        material.color = color;
+        return material;
     }
 }
