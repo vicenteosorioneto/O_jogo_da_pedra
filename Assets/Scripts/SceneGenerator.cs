@@ -47,6 +47,9 @@ public class SceneGenerator : MonoBehaviour
         // Criar Maria Sangrenta
         CreateGhost();
 
+        // Criar Atmosfera dinâmica
+        CreateAtmosphereController();
+
         // Criar Espelho (Ritual)
         CreateMirror();
 
@@ -100,19 +103,23 @@ public class SceneGenerator : MonoBehaviour
         ground.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Plane.fbx");
         ground.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.2f, 0.2f, 0.2f));
         ground.AddComponent<BoxCollider>();
-        ground.transform.localScale = new Vector3(10, 1, 10);
+        ground.transform.localScale = new Vector3(24, 1, 24);
 
         // Paredes simples
-        CreateWall("WallN", new Vector3(0, 2, 5), new Vector3(10, 4, 1));
-        CreateWall("WallS", new Vector3(0, 2, -5), new Vector3(10, 4, 1));
-        CreateWall("WallE", new Vector3(5, 2, 0), new Vector3(1, 4, 10));
-        CreateWall("WallW", new Vector3(-5, 2, 0), new Vector3(1, 4, 10));
-        CreateWall("Ceiling", new Vector3(0, 4, 0), new Vector3(10, 1, 10));
+        CreateWall("WallN", new Vector3(0, 2, 12), new Vector3(24, 4, 1));
+        CreateWall("WallS", new Vector3(0, 2, -12), new Vector3(24, 4, 1));
+        CreateWall("WallE", new Vector3(12, 2, 0), new Vector3(1, 4, 24));
+        CreateWall("WallW", new Vector3(-12, 2, 0), new Vector3(1, 4, 24));
+        CreateWall("Ceiling", new Vector3(0, 4, 0), new Vector3(24, 1, 24));
 
         CreateFloorTiles();
+        CreateCorridorSections();
+        CreateInteriorLayout();
+        CreateBathroomZone();
         CreateClassroomProps();
         CreateWallDetails();
         CreateCeilingLamps();
+        CreateDebrisAndStains();
 
         Debug.Log("✓ Ambiente criado");
     }
@@ -131,9 +138,9 @@ public class SceneGenerator : MonoBehaviour
     {
         GameObject floorDetails = new GameObject("FloorTiles");
 
-        for (int x = -4; x <= 4; x += 2)
+        for (int x = -10; x <= 10; x += 2)
         {
-            for (int z = -4; z <= 4; z += 2)
+            for (int z = -10; z <= 10; z += 2)
             {
                 Color tileColor = ((x + z) % 4 == 0) ? new Color(0.23f, 0.23f, 0.25f) : new Color(0.16f, 0.16f, 0.18f);
                 GameObject tile = CreatePropCube(
@@ -150,10 +157,111 @@ public class SceneGenerator : MonoBehaviour
         GameObject corridorStrip = CreatePropCube(
             "CorridorStrip",
             new Vector3(0f, 0.02f, 0f),
-            new Vector3(1.4f, 0.03f, 9.2f),
+            new Vector3(1.8f, 0.03f, 22f),
             new Color(0.12f, 0.12f, 0.14f),
             false);
         corridorStrip.transform.SetParent(floorDetails.transform);
+
+        GameObject crossStrip = CreatePropCube(
+            "CrossStrip",
+            new Vector3(0f, 0.02f, 0f),
+            new Vector3(22f, 0.03f, 1.8f),
+            new Color(0.12f, 0.12f, 0.14f),
+            false);
+        crossStrip.transform.SetParent(floorDetails.transform);
+    }
+
+    void CreateCorridorSections()
+    {
+        GameObject corridors = new GameObject("CorridorSections");
+
+        CreatePropCube("NorthMidWall", new Vector3(0f, 1.6f, 6f), new Vector3(12f, 3.2f, 0.25f), new Color(0.24f, 0.24f, 0.26f)).transform.SetParent(corridors.transform);
+        CreatePropCube("SouthMidWall", new Vector3(0f, 1.6f, -6f), new Vector3(12f, 3.2f, 0.25f), new Color(0.24f, 0.24f, 0.26f)).transform.SetParent(corridors.transform);
+        CreatePropCube("EastMidWall", new Vector3(6f, 1.6f, 0f), new Vector3(0.25f, 3.2f, 12f), new Color(0.24f, 0.24f, 0.26f)).transform.SetParent(corridors.transform);
+        CreatePropCube("WestMidWall", new Vector3(-6f, 1.6f, 0f), new Vector3(0.25f, 3.2f, 12f), new Color(0.24f, 0.24f, 0.26f)).transform.SetParent(corridors.transform);
+
+        // Aberturas/caminhos
+        CreatePropCube("DoorFrameN", new Vector3(0f, 2.85f, 6f), new Vector3(2.4f, 0.35f, 0.3f), new Color(0.14f, 0.14f, 0.16f)).transform.SetParent(corridors.transform);
+        CreatePropCube("DoorFrameS", new Vector3(0f, 2.85f, -6f), new Vector3(2.4f, 0.35f, 0.3f), new Color(0.14f, 0.14f, 0.16f)).transform.SetParent(corridors.transform);
+        CreatePropCube("DoorFrameE", new Vector3(6f, 2.85f, 0f), new Vector3(0.3f, 0.35f, 2.4f), new Color(0.14f, 0.14f, 0.16f)).transform.SetParent(corridors.transform);
+        CreatePropCube("DoorFrameW", new Vector3(-6f, 2.85f, 0f), new Vector3(0.3f, 0.35f, 2.4f), new Color(0.14f, 0.14f, 0.16f)).transform.SetParent(corridors.transform);
+
+        // Blocos extras para quebrar linha reta
+        CreatePropCube("BlockerA", new Vector3(3.5f, 1.2f, 3.5f), new Vector3(1.8f, 2.4f, 1f), new Color(0.2f, 0.2f, 0.22f)).transform.SetParent(corridors.transform);
+        CreatePropCube("BlockerB", new Vector3(-3.5f, 1.2f, -3.5f), new Vector3(1.8f, 2.4f, 1f), new Color(0.2f, 0.2f, 0.22f)).transform.SetParent(corridors.transform);
+    }
+
+    void CreateInteriorLayout()
+    {
+        GameObject layout = new GameObject("InteriorLayout");
+
+        GameObject partitionLeft = CreatePropCube("PartitionLeft", new Vector3(-3f, 1.6f, 1f), new Vector3(4f, 3.2f, 0.28f), new Color(0.26f, 0.26f, 0.28f));
+        partitionLeft.transform.SetParent(layout.transform);
+
+        GameObject partitionRight = CreatePropCube("PartitionRight", new Vector3(3f, 1.6f, 1f), new Vector3(4f, 3.2f, 0.28f), new Color(0.26f, 0.26f, 0.28f));
+        partitionRight.transform.SetParent(layout.transform);
+
+        GameObject doorTop = CreatePropCube("DoorFrameTop", new Vector3(0f, 2.85f, 1f), new Vector3(2.2f, 0.35f, 0.35f), new Color(0.14f, 0.14f, 0.16f));
+        doorTop.transform.SetParent(layout.transform);
+
+        GameObject leftFrame = CreatePropCube("DoorFrameLeft", new Vector3(-1.1f, 1.4f, 1f), new Vector3(0.22f, 2.5f, 0.3f), new Color(0.14f, 0.14f, 0.16f));
+        leftFrame.transform.SetParent(layout.transform);
+
+        GameObject rightFrame = CreatePropCube("DoorFrameRight", new Vector3(1.1f, 1.4f, 1f), new Vector3(0.22f, 2.5f, 0.3f), new Color(0.14f, 0.14f, 0.16f));
+        rightFrame.transform.SetParent(layout.transform);
+    }
+
+    void CreateBathroomZone()
+    {
+        GameObject bathroom = new GameObject("BathroomZone");
+
+        GameObject tileWall = CreatePropCube("BathroomBackWall", new Vector3(0f, 1.6f, 3.8f), new Vector3(7f, 3.2f, 0.18f), new Color(0.62f, 0.62f, 0.65f));
+        tileWall.transform.SetParent(bathroom.transform);
+
+        for (int i = 0; i < 3; i++)
+        {
+            float x = -2.2f + (i * 2.2f);
+            GameObject sink = CreatePropCube($"Sink_{i}", new Vector3(x, 0.95f, 3.25f), new Vector3(1.4f, 0.35f, 0.6f), new Color(0.78f, 0.78f, 0.8f));
+            sink.transform.SetParent(bathroom.transform);
+
+            GameObject faucet = CreatePropCube($"Faucet_{i}", new Vector3(x, 1.2f, 3.45f), new Vector3(0.18f, 0.2f, 0.15f), new Color(0.45f, 0.45f, 0.48f), false);
+            faucet.transform.SetParent(bathroom.transform);
+        }
+
+        GameObject stallLeft = CreatePropCube("StallWallLeft", new Vector3(-3.8f, 1.3f, 2.2f), new Vector3(0.16f, 2.6f, 2.4f), new Color(0.68f, 0.68f, 0.7f));
+        stallLeft.transform.SetParent(bathroom.transform);
+        GameObject stallRight = CreatePropCube("StallWallRight", new Vector3(-2.4f, 1.3f, 2.2f), new Vector3(0.16f, 2.6f, 2.4f), new Color(0.68f, 0.68f, 0.7f));
+        stallRight.transform.SetParent(bathroom.transform);
+        GameObject stallDoor = CreatePropCube("StallDoorBroken", new Vector3(-3.1f, 1.1f, 1.05f), new Vector3(1.2f, 2.2f, 0.08f), new Color(0.58f, 0.58f, 0.6f));
+        stallDoor.transform.rotation = Quaternion.Euler(0, 22f, 0);
+        stallDoor.transform.SetParent(bathroom.transform);
+    }
+
+    void CreateDebrisAndStains()
+    {
+        GameObject debris = new GameObject("DebrisAndStains");
+
+        for (int i = 0; i < 16; i++)
+        {
+            float x = Random.Range(-4.3f, 4.3f);
+            float z = Random.Range(-4.3f, 4.3f);
+            float scale = Random.Range(0.08f, 0.22f);
+
+            GameObject paper = CreatePropCube($"Paper_{i}", new Vector3(x, 0.03f, z), new Vector3(scale * 1.5f, 0.01f, scale), new Color(0.6f, 0.6f, 0.55f), false);
+            paper.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), Random.Range(-6f, 6f));
+            paper.transform.SetParent(debris.transform);
+        }
+
+        for (int i = 0; i < 10; i++)
+        {
+            float x = Random.Range(-4.2f, 4.2f);
+            float z = Random.Range(-4.2f, 4.2f);
+            float size = Random.Range(0.18f, 0.45f);
+
+            GameObject stain = CreatePropCube($"Stain_{i}", new Vector3(x, 0.015f, z), new Vector3(size, 0.01f, size), new Color(0.08f, 0.05f, 0.04f), false);
+            stain.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+            stain.transform.SetParent(debris.transform);
+        }
     }
 
     void CreateClassroomProps()
@@ -257,6 +365,7 @@ public class SceneGenerator : MonoBehaviour
         rb.freezeRotation = true;
 
         player.AddComponent<PlayerController>();
+        player.AddComponent<PlayerAudioFeedback>();
 
         // Camera filho
         GameObject camera = new GameObject("PlayerCamera");
@@ -276,7 +385,7 @@ public class SceneGenerator : MonoBehaviour
         if (playerCameraField != null)
             playerCameraField.SetValue(pc, cam);
 
-        player.transform.position = new Vector3(0, 1, 0);
+        player.transform.position = new Vector3(-9, 1, -9);
         player.transform.rotation = Quaternion.Euler(0, 180, 0);
 
         Debug.Log("✓ Player criado");
@@ -310,9 +419,9 @@ public class SceneGenerator : MonoBehaviour
     {
         Vector3[] positions = new Vector3[]
         {
-            new Vector3(-3, 0.5f, 2),
-            new Vector3(3, 0.5f, 2),
-            new Vector3(0, 0.5f, -4)
+            new Vector3(-9f, 0.8f, 8f),
+            new Vector3(9f, 0.8f, -8f),
+            new Vector3(8f, 0.8f, 9f)
         };
 
         Material fragmentMat = CreateDefaultMaterial(new Color(0.8f, 0.2f, 0.2f)); // Vermelho
@@ -321,7 +430,7 @@ public class SceneGenerator : MonoBehaviour
         {
             GameObject fragment = new GameObject($"Fragment_{i + 1}");
             
-            fragment.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            fragment.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
             fragment.AddComponent<MeshRenderer>().material = fragmentMat;
             
             SphereCollider collider = fragment.AddComponent<SphereCollider>();
@@ -335,7 +444,7 @@ public class SceneGenerator : MonoBehaviour
                 fragmentIdField.SetValue(fc, i + 1);
 
             fragment.transform.position = positions[i];
-            fragment.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            fragment.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
         }
 
         Debug.Log("✓ 3 Fragmentos criados");
@@ -362,10 +471,17 @@ public class SceneGenerator : MonoBehaviour
         if (playerField != null)
             playerField.SetValue(ghostAI, playerTransform);
 
-        ghost.transform.position = new Vector3(5, 1, 5);
+        ghost.transform.position = new Vector3(10, 1, 10);
         ghost.transform.localScale = new Vector3(0.8f, 2, 0.8f);
 
         Debug.Log("✓ Maria Sangrenta criada");
+    }
+
+    void CreateAtmosphereController()
+    {
+        GameObject atmosphere = new GameObject("AtmosphereController");
+        atmosphere.AddComponent<AtmosphereController>();
+        Debug.Log("✓ Atmosfera dinâmica criada");
     }
 
     void CreateMirror()
@@ -391,7 +507,7 @@ public class SceneGenerator : MonoBehaviour
         light.color = new Color(0.2f, 1, 0.5f); // Verde fantasmagórico
         light.enabled = false;
 
-        mirror.transform.position = new Vector3(0, 1.5f, 4);
+        mirror.transform.position = new Vector3(-10, 1.5f, 10);
         mirror.transform.rotation = Quaternion.identity;
 
         Debug.Log("✓ Espelho (Ritual) criado");
@@ -409,7 +525,7 @@ public class SceneGenerator : MonoBehaviour
 
         exit.AddComponent<ExitManager>();
 
-        exit.transform.position = new Vector3(-4, 1, -4);
+        exit.transform.position = new Vector3(10, 1, -10);
         exit.transform.localScale = new Vector3(1, 2, 1);
 
         Debug.Log("✓ Saída criada");
