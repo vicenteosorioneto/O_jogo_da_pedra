@@ -75,25 +75,25 @@ public class SceneGenerator : MonoBehaviour
     void CreateLighting()
     {
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.08f, 0.09f, 0.11f);
+        RenderSettings.ambientLight = new Color(0.13f, 0.13f, 0.14f);
         RenderSettings.fog = true;
-        RenderSettings.fogColor = new Color(0.04f, 0.045f, 0.05f);
-        RenderSettings.fogDensity = 0.032f;
+        RenderSettings.fogColor = new Color(0.11f, 0.11f, 0.1f);
+        RenderSettings.fogDensity = 0.02f;
 
         // Directional Light (sol/lua)
         GameObject lightObj = new GameObject("Directional Light");
         Light light = lightObj.AddComponent<Light>();
         light.type = LightType.Directional;
-        light.intensity = 0.18f;
-        light.color = new Color(0.35f, 0.42f, 0.6f); // Azul frio distante
-        lightObj.transform.rotation = Quaternion.Euler(22, -35, 0);
+        light.intensity = 0.26f;
+        light.color = new Color(0.72f, 0.72f, 0.68f);
+        lightObj.transform.rotation = Quaternion.Euler(38, -20, 0);
 
         GameObject fillLightObj = new GameObject("Fill Light");
         Light fillLight = fillLightObj.AddComponent<Light>();
         fillLight.type = LightType.Point;
-        fillLight.intensity = 0.45f;
-        fillLight.range = 55f;
-        fillLight.color = new Color(0.22f, 0.28f, 0.35f);
+        fillLight.intensity = 0.6f;
+        fillLight.range = 70f;
+        fillLight.color = new Color(0.38f, 0.36f, 0.32f);
         fillLightObj.transform.position = new Vector3(0, 6, 0);
 
         Debug.Log("✓ Iluminação criada");
@@ -122,10 +122,11 @@ public class SceneGenerator : MonoBehaviour
 
         CreateMainTunnelPath();
         CreateSideChambers();
+        CreateLimestoneSurfaceDetail();
         CreateRockClusters();
         CreateStalagmitesAndStalactites();
         CreateCaveLights();
-        CreateMistZones();
+        CreateWetGroundPatches();
 
         Debug.Log("✓ Ambiente criado");
     }
@@ -171,23 +172,82 @@ public class SceneGenerator : MonoBehaviour
     {
         GameObject tunnels = new GameObject("MainTunnels");
 
-        CreatePropCube("TunnelA", new Vector3(-10f, 1.2f, -8f), new Vector3(9f, 2.4f, 4f), new Color(0.13f, 0.13f, 0.15f), false).transform.SetParent(tunnels.transform);
-        CreatePropCube("TunnelB", new Vector3(0f, 1.2f, -3f), new Vector3(12f, 2.4f, 4f), new Color(0.13f, 0.13f, 0.15f), false).transform.SetParent(tunnels.transform);
-        CreatePropCube("TunnelC", new Vector3(8f, 1.2f, 5f), new Vector3(6f, 2.4f, 8f), new Color(0.13f, 0.13f, 0.15f), false).transform.SetParent(tunnels.transform);
+        // Corredor principal com bordas rochosas irregulares
+        for (int i = 0; i < 28; i++)
+        {
+            float t = i / 27f;
+            Vector3 center = Vector3.Lerp(new Vector3(-12f, 0.8f, -10f), new Vector3(10f, 0.8f, 8f), t);
+            Vector3 forward = (new Vector3(10f, 0f, 8f) - new Vector3(-12f, 0f, -10f)).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, forward);
 
-        // Paredes internas para curvar caminho
-        CreatePropCube("RockWallA", new Vector3(-4f, 2f, -5f), new Vector3(2f, 4f, 10f), new Color(0.09f, 0.09f, 0.11f)).transform.SetParent(tunnels.transform);
-        CreatePropCube("RockWallB", new Vector3(4f, 2f, 0f), new Vector3(2f, 4f, 10f), new Color(0.09f, 0.09f, 0.11f)).transform.SetParent(tunnels.transform);
-        CreatePropCube("RockWallC", new Vector3(11f, 2f, 2f), new Vector3(6f, 4f, 2f), new Color(0.09f, 0.09f, 0.11f)).transform.SetParent(tunnels.transform);
+            Vector3 leftEdge = center - right * Random.Range(2.5f, 3.2f);
+            Vector3 rightEdge = center + right * Random.Range(2.5f, 3.2f);
+
+            GameObject leftRock = CreatePropCube($"TunnelEdgeL_{i}", leftEdge + Vector3.up * Random.Range(1f, 2.6f), new Vector3(Random.Range(1.2f, 2.8f), Random.Range(2.2f, 5f), Random.Range(1f, 2.2f)), new Color(0.2f, 0.2f, 0.18f));
+            leftRock.transform.rotation = Random.rotation;
+            leftRock.transform.SetParent(tunnels.transform);
+
+            GameObject rightRock = CreatePropCube($"TunnelEdgeR_{i}", rightEdge + Vector3.up * Random.Range(1f, 2.6f), new Vector3(Random.Range(1.2f, 2.8f), Random.Range(2.2f, 5f), Random.Range(1f, 2.2f)), new Color(0.2f, 0.2f, 0.18f));
+            rightRock.transform.rotation = Random.rotation;
+            rightRock.transform.SetParent(tunnels.transform);
+        }
     }
 
     void CreateSideChambers()
     {
         GameObject chambers = new GameObject("SideChambers");
 
-        CreatePropCube("ChamberWest", new Vector3(-12f, 1.5f, 7f), new Vector3(8f, 3f, 8f), new Color(0.12f, 0.11f, 0.13f), false).transform.SetParent(chambers.transform);
-        CreatePropCube("ChamberEast", new Vector3(12f, 1.5f, -10f), new Vector3(8f, 3f, 8f), new Color(0.12f, 0.11f, 0.13f), false).transform.SetParent(chambers.transform);
-        CreatePropCube("RitualChamber", new Vector3(-13f, 1.5f, 13f), new Vector3(6f, 3f, 6f), new Color(0.13f, 0.11f, 0.13f), false).transform.SetParent(chambers.transform);
+        CreateChamberRing(chambers.transform, "West", new Vector3(-12f, 1f, 7f), 4.8f, 14);
+        CreateChamberRing(chambers.transform, "East", new Vector3(12f, 1f, -10f), 4.6f, 14);
+        CreateChamberRing(chambers.transform, "Ritual", new Vector3(-13f, 1f, 13f), 3.8f, 12);
+    }
+
+    void CreateChamberRing(Transform parent, string prefix, Vector3 center, float radius, int rocks)
+    {
+        for (int i = 0; i < rocks; i++)
+        {
+            float angle = i * Mathf.PI * 2f / rocks;
+            Vector3 edge = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+            GameObject rock = CreatePropCube(
+                $"{prefix}Ring_{i}",
+                edge + new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(1f, 2.8f), Random.Range(-0.4f, 0.4f)),
+                new Vector3(Random.Range(1.4f, 3.2f), Random.Range(2f, 5f), Random.Range(1.4f, 3.2f)),
+                new Color(0.19f, 0.18f, 0.16f));
+            rock.transform.rotation = Random.rotation;
+            rock.transform.SetParent(parent);
+        }
+    }
+
+    void CreateLimestoneSurfaceDetail()
+    {
+        GameObject detail = new GameObject("LimestoneDetail");
+
+        for (int i = 0; i < 260; i++)
+        {
+            int side = Random.Range(0, 5);
+            Vector3 position;
+
+            if (side == 0)
+                position = new Vector3(Random.Range(-16f, 16f), Random.Range(1.2f, 7f), 16.8f + Random.Range(-0.6f, 0.6f));
+            else if (side == 1)
+                position = new Vector3(Random.Range(-16f, 16f), Random.Range(1.2f, 7f), -16.8f + Random.Range(-0.6f, 0.6f));
+            else if (side == 2)
+                position = new Vector3(16.8f + Random.Range(-0.6f, 0.6f), Random.Range(1.2f, 7f), Random.Range(-16f, 16f));
+            else if (side == 3)
+                position = new Vector3(-16.8f + Random.Range(-0.6f, 0.6f), Random.Range(1.2f, 7f), Random.Range(-16f, 16f));
+            else
+                position = new Vector3(Random.Range(-16f, 16f), 7.8f + Random.Range(-0.4f, 0.6f), Random.Range(-16f, 16f));
+
+            Color limestone = Color.Lerp(new Color(0.72f, 0.7f, 0.64f), new Color(0.52f, 0.5f, 0.45f), Random.value);
+            GameObject chunk = CreatePropCube(
+                $"Limestone_{i}",
+                position,
+                new Vector3(Random.Range(0.8f, 2.2f), Random.Range(0.6f, 2.4f), Random.Range(0.8f, 2.2f)),
+                limestone,
+                false);
+            chunk.transform.rotation = Random.rotation;
+            chunk.transform.SetParent(detail.transform);
+        }
     }
 
     void CreateRockClusters()
@@ -249,11 +309,34 @@ public class SceneGenerator : MonoBehaviour
     {
         GameObject caveLights = new GameObject("CaveLights");
 
-        CreateLamp("Lamp_0", new Vector3(-9f, 2.2f, -7f), 1.4f, new Color(1f, 0.56f, 0.25f), caveLights.transform);
-        CreateLamp("Lamp_1", new Vector3(-2f, 2.2f, -2f), 1.2f, new Color(1f, 0.6f, 0.28f), caveLights.transform);
-        CreateLamp("Lamp_2", new Vector3(6f, 2.2f, 4f), 1.1f, new Color(0.95f, 0.58f, 0.24f), caveLights.transform);
-        CreateLamp("Lamp_3", new Vector3(12f, 2.2f, -10f), 1.3f, new Color(0.9f, 0.5f, 0.22f), caveLights.transform);
-        CreateLamp("Lamp_4", new Vector3(-13f, 2.2f, 12f), 1.55f, new Color(0.22f, 0.85f, 0.45f), caveLights.transform);
+        CreateLamp("Lamp_0", new Vector3(-9f, 1.2f, -7f), 2.2f, new Color(1f, 0.72f, 0.3f), caveLights.transform);
+        CreateLamp("Lamp_1", new Vector3(-2f, 1.1f, -2f), 1.8f, new Color(1f, 0.74f, 0.34f), caveLights.transform);
+        CreateLamp("Lamp_2", new Vector3(6f, 1.3f, 4f), 1.9f, new Color(1f, 0.68f, 0.28f), caveLights.transform);
+        CreateLamp("Lamp_3", new Vector3(12f, 1.2f, -10f), 2f, new Color(0.95f, 0.62f, 0.27f), caveLights.transform);
+        CreateLamp("Lamp_4", new Vector3(-13f, 1.4f, 12f), 2.35f, new Color(1f, 0.78f, 0.36f), caveLights.transform);
+    }
+
+    void CreateWetGroundPatches()
+    {
+        GameObject patches = new GameObject("WetGroundPatches");
+
+        for (int i = 0; i < 18; i++)
+        {
+            float x = Random.Range(-15f, 15f);
+            float z = Random.Range(-15f, 15f);
+
+            if (IsPathZone(x, z) && Random.value < 0.35f)
+                continue;
+
+            GameObject patch = CreatePropCube(
+                $"WetPatch_{i}",
+                new Vector3(x, 0.025f, z),
+                new Vector3(Random.Range(0.9f, 3.2f), 0.01f, Random.Range(0.9f, 2.6f)),
+                new Color(0.2f, 0.18f, 0.14f),
+                false);
+            patch.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+            patch.transform.SetParent(patches.transform);
+        }
     }
 
     void CreateMistZones()
