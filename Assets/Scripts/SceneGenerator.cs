@@ -109,6 +109,11 @@ public class SceneGenerator : MonoBehaviour
         CreateWall("WallW", new Vector3(-5, 2, 0), new Vector3(1, 4, 10));
         CreateWall("Ceiling", new Vector3(0, 4, 0), new Vector3(10, 1, 10));
 
+        CreateFloorTiles();
+        CreateClassroomProps();
+        CreateWallDetails();
+        CreateCeilingLamps();
+
         Debug.Log("✓ Ambiente criado");
     }
 
@@ -120,6 +125,120 @@ public class SceneGenerator : MonoBehaviour
         wall.AddComponent<BoxCollider>();
         wall.transform.position = position;
         wall.transform.localScale = scale;
+    }
+
+    void CreateFloorTiles()
+    {
+        GameObject floorDetails = new GameObject("FloorTiles");
+
+        for (int x = -4; x <= 4; x += 2)
+        {
+            for (int z = -4; z <= 4; z += 2)
+            {
+                Color tileColor = ((x + z) % 4 == 0) ? new Color(0.23f, 0.23f, 0.25f) : new Color(0.16f, 0.16f, 0.18f);
+                GameObject tile = CreatePropCube(
+                    $"Tile_{x}_{z}",
+                    new Vector3(x, 0.01f, z),
+                    new Vector3(2f, 0.02f, 2f),
+                    tileColor,
+                    false);
+
+                tile.transform.SetParent(floorDetails.transform);
+            }
+        }
+
+        GameObject corridorStrip = CreatePropCube(
+            "CorridorStrip",
+            new Vector3(0f, 0.02f, 0f),
+            new Vector3(1.4f, 0.03f, 9.2f),
+            new Color(0.12f, 0.12f, 0.14f),
+            false);
+        corridorStrip.transform.SetParent(floorDetails.transform);
+    }
+
+    void CreateClassroomProps()
+    {
+        GameObject classroomProps = new GameObject("ClassroomProps");
+        Color deskColor = new Color(0.32f, 0.24f, 0.16f);
+        Color chairColor = new Color(0.22f, 0.22f, 0.24f);
+
+        for (int row = 0; row < 2; row++)
+        {
+            for (int col = 0; col < 3; col++)
+            {
+                float x = -2.8f + (col * 2.8f);
+                float z = 2.5f - (row * 3f);
+
+                GameObject desk = CreatePropCube($"Desk_{row}_{col}", new Vector3(x, 0.55f, z), new Vector3(1.4f, 0.7f, 0.9f), deskColor);
+                desk.transform.SetParent(classroomProps.transform);
+
+                GameObject chair = CreatePropCube($"Chair_{row}_{col}", new Vector3(x, 0.3f, z - 0.9f), new Vector3(0.7f, 0.4f, 0.7f), chairColor);
+                chair.transform.SetParent(classroomProps.transform);
+            }
+        }
+
+        GameObject teacherDesk = CreatePropCube("TeacherDesk", new Vector3(0, 0.65f, 3.9f), new Vector3(2.4f, 0.9f, 1f), new Color(0.36f, 0.28f, 0.2f));
+        teacherDesk.transform.SetParent(classroomProps.transform);
+
+        GameObject board = CreatePropCube("Blackboard", new Vector3(0, 2.2f, 4.45f), new Vector3(4.6f, 1.8f, 0.08f), new Color(0.08f, 0.15f, 0.12f));
+        board.transform.SetParent(classroomProps.transform);
+
+        GameObject lockerA = CreatePropCube("LockerA", new Vector3(4.2f, 1.3f, 2.2f), new Vector3(0.7f, 2.6f, 1f), new Color(0.2f, 0.23f, 0.27f));
+        lockerA.transform.SetParent(classroomProps.transform);
+        GameObject lockerB = CreatePropCube("LockerB", new Vector3(4.2f, 1.3f, 0.9f), new Vector3(0.7f, 2.6f, 1f), new Color(0.18f, 0.2f, 0.24f));
+        lockerB.transform.SetParent(classroomProps.transform);
+    }
+
+    void CreateWallDetails()
+    {
+        GameObject wallDetails = new GameObject("WallDetails");
+
+        GameObject windowN1 = CreatePropCube("WindowN1", new Vector3(-2.4f, 2.1f, 4.48f), new Vector3(1.8f, 1.2f, 0.08f), new Color(0.3f, 0.45f, 0.55f));
+        windowN1.transform.SetParent(wallDetails.transform);
+        GameObject windowN2 = CreatePropCube("WindowN2", new Vector3(2.4f, 2.1f, 4.48f), new Vector3(1.8f, 1.2f, 0.08f), new Color(0.3f, 0.45f, 0.55f));
+        windowN2.transform.SetParent(wallDetails.transform);
+
+        GameObject posterA = CreatePropCube("PosterA", new Vector3(-4.45f, 1.8f, -1.5f), new Vector3(0.08f, 1.1f, 0.9f), new Color(0.52f, 0.2f, 0.2f));
+        posterA.transform.SetParent(wallDetails.transform);
+        GameObject posterB = CreatePropCube("PosterB", new Vector3(4.45f, 1.7f, -2.2f), new Vector3(0.08f, 1f, 0.8f), new Color(0.22f, 0.22f, 0.52f));
+        posterB.transform.SetParent(wallDetails.transform);
+
+        GameObject bloodMark = CreatePropCube("BloodMark", new Vector3(0f, 1.4f, -4.45f), new Vector3(1.6f, 0.7f, 0.08f), new Color(0.35f, 0.05f, 0.05f));
+        bloodMark.transform.SetParent(wallDetails.transform);
+    }
+
+    void CreateCeilingLamps()
+    {
+        GameObject lamps = new GameObject("CeilingLamps");
+
+        CreateLamp("Lamp_0", new Vector3(0f, 3.4f, 0f), 2.3f, new Color(0.9f, 0.9f, 0.8f), lamps.transform);
+        CreateLamp("Lamp_1", new Vector3(0f, 3.4f, 2.8f), 1.8f, new Color(0.75f, 0.75f, 0.9f), lamps.transform);
+        CreateLamp("Lamp_2", new Vector3(0f, 3.4f, -2.8f), 1.6f, new Color(0.8f, 0.75f, 0.65f), lamps.transform);
+    }
+
+    void CreateLamp(string name, Vector3 position, float intensity, Color color, Transform parent)
+    {
+        GameObject lamp = CreatePropCube(name, position, new Vector3(0.6f, 0.1f, 0.6f), new Color(0.8f, 0.8f, 0.82f), false);
+        lamp.transform.SetParent(parent);
+
+        Light light = lamp.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.range = 10f;
+        light.intensity = intensity;
+        light.color = color;
+    }
+
+    GameObject CreatePropCube(string name, Vector3 position, Vector3 scale, Color color, bool withCollider = true)
+    {
+        GameObject prop = new GameObject(name);
+        prop.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+        prop.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(color);
+        if (withCollider)
+            prop.AddComponent<BoxCollider>();
+
+        prop.transform.position = position;
+        prop.transform.localScale = scale;
+        return prop;
     }
 
     void CreatePlayer()
