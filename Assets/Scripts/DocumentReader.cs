@@ -12,7 +12,9 @@ public class DocumentReader : MonoBehaviour, IInteractable
 
     void Start()
     {
-        GetComponent<Collider>().isTrigger = true;
+        Collider2D triggerCollider = GetComponent<Collider2D>();
+        if (triggerCollider != null)
+            triggerCollider.isTrigger = true;
     }
 
     public void Interact()

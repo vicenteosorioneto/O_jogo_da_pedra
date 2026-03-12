@@ -9,7 +9,9 @@ public class RitualManager : MonoBehaviour, IInteractable
 
     void Start()
     {
-        GetComponent<Collider>().isTrigger = true;
+        Collider2D triggerCollider = GetComponent<Collider2D>();
+        if (triggerCollider != null)
+            triggerCollider.isTrigger = true;
         if (ritualLight != null)
             ritualLight.enabled = false;
     }
