@@ -1,6 +1,6 @@
 # 🎮 O Segredo da Pedra - MVP
 
-Um jogo de horror em primeira pessoa desenvolvido em **Unity** baseado na lenda urbana de Maria Sangrenta.
+Um jogo de horror **2D top-down** desenvolvido em **Unity** baseado na lenda urbana de Maria Sangrenta.
 
 ---
 
@@ -21,7 +21,7 @@ O jogador fica preso na escola durante a noite após participar de uma brincadei
 
 ## ⚡ Setup Rápido (1 Minuto)
 
-1. **Abra o Unity** e crie uma cena vazia (File → New Scene → 3D)
+1. **Abra o Unity** e crie uma cena vazia (File → New Scene → 2D)
 2. **Delete Main Camera** (não precisa)
 3. **Create Empty** (Right-click na Hierarchy)
 4. **Attach SceneGenerator.cs** (Add Component → SceneGenerator)
@@ -36,9 +36,9 @@ Tudo é criado automaticamente! 🎉
 | Ação | Tecla |
 |------|-------|
 | Mover | **WASD** |
-| Olhar ao redor | **Mouse** |
 | Correr | **Shift + WASD** |
 | Interagir | **E** |
+| Lanterna | **F** |
 | Liberar mouse | **ESC** |
 | Debug Info | **F1** |
 | Forçar Final Bom | **F2** |
@@ -50,7 +50,7 @@ Tudo é criado automaticamente! 🎉
 
 | Script | Função |
 |--------|--------|
-| **PlayerController.cs** | Movimento, câmera e interações |
+| **PlayerController.cs** | Movimento 2D, sprint/stamina e interações |
 | **GameManager.cs** | Hub central - gerencia fragmentos e finais |
 | **FragmentCollector.cs** | Coleta os 3 fragmentos |
 | **GhostAI.cs** | IA de Maria Sangrenta (perseguição + jumpscare) |
@@ -58,6 +58,10 @@ Tudo é criado automaticamente! 🎉
 | **ExitManager.cs** | Gerencia a saída e determina final |
 | **InputManager.cs** | Input global e debug |
 | **SceneGenerator.cs** | **Gera a cena inteira automaticamente** ⭐ |
+| **AtmosphereController.cs** | Ambiência dinâmica (hum, rangidos, heartbeat) |
+| **SchoolScareDirector.cs** | Eventos de susto por área (escola) |
+| **GameHUD.cs** | HUD com fragmentos, objetivo, stamina e feedback visual |
+| **PlayerAudioFeedback.cs** | Passos e respiração dinâmica |
 | **DocumentReader.cs** | Preparado para ler documentos (Fase 2) |
 
 ---
@@ -100,7 +104,7 @@ FINAL RUIM ❌ - Ela o seguirá para sempre
 
 ## 👾 Elementos do MVP
 
-✅ Sistema de movimento completo em FPS  
+✅ Sistema de movimento completo em 2D  
 ✅ Coleta de fragmentos com contador  
 ✅ Maria Sangrenta com IA (perseguição + jumpscare)  
 ✅ Aparições aleatórias (a cada 15 segundos)  
@@ -126,6 +130,10 @@ Assets/
 │   ├── InputManager.cs
 │   ├── SceneGenerator.cs
 │   ├── DocumentReader.cs
+│   ├── AtmosphereController.cs
+│   ├── SchoolScareDirector.cs
+│   ├── GameHUD.cs
+│   ├── PlayerAudioFeedback.cs
 │   └── IInteractable.cs
 ├── Prefabs/ (para futuro)
 └── UI/ (para futuro)

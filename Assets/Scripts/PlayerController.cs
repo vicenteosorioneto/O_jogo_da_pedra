@@ -11,23 +11,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float staminaDrainPerSecond = 1.2f;
     [SerializeField] private float staminaRecoveryPerSecond = 0.9f;
     [SerializeField] private float exhaustionRecoveryThreshold = 0.35f;
-    [SerializeField] private Camera playerCamera;
     [SerializeField] private float interactionDistance = 3f;
     [SerializeField] private Light flashlight;
     [SerializeField] private float flashlightIntensity = 4f;
 
     private float currentSpeed;
     private float currentStamina;
-    private Rigidbody rb;
-    private Vector3 moveDirection;
+    private Rigidbody2D rb;
+    private Vector2 moveDirection;
+    private Vector2 lastInteractionDirection = Vector2.up;
     private bool canMove = true;
     private bool isExhausted = false;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        if (playerCamera == null)
-            playerCamera = Camera.main;
+        rb = GetComponent<Rigidbody2D>();
         currentStamina = maxStamina;
 
         SetupFlashlight();
@@ -46,8 +44,8 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         if (!canMove) return;
-        
-        rb.linearVelocity = new Vector3(moveDirection.x * currentSpeed, rb.linearVelocity.y, moveDirection.z * currentSpeed);
+
+        rb.linearVelocity = moveDirection * currentSpeed;
     }
 
     void HandleMovement()
@@ -71,7 +69,9 @@ public class PlayerController : MonoBehaviour
         vertical = Input.GetAxis("Vertical");
     #endif
 
-        moveDirection = (transform.right * horizontal + transform.forward * vertical).normalized;
+        moveDirection = new Vector2(horizontal, vertical).normalized;
+        if (moveDirection.sqrMagnitude > 0.001f)
+            lastInteractionDirection = moveDirection;
 
         // Sprint
         bool wantsToSprint;
@@ -102,14 +102,6 @@ public class PlayerController : MonoBehaviour
 
         currentSpeed = canSprint ? sprintSpeed : moveSpeed;
 
-        // Rotação com mouse
-        float mouseX;
-    #if ENABLE_INPUT_SYSTEM
-        mouseX = Mouse.current != null ? Mouse.current.delta.ReadValue().x * 0.05f : 0f;
-    #else
-        mouseX = Input.GetAxis("Mouse X") * 2f;
-    #endif
-        transform.Rotate(Vector3.up * mouseX);
     }
 
     void HandleInteraction()
@@ -123,13 +115,40 @@ public class PlayerController : MonoBehaviour
 
         if (interactPressed)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, interactionDistance))
+            Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, interactionDistance);
+            IInteractable nearestInteractable = null;
+            float nearestDistance = float.MaxValue;
+
+            for (int i = 0; i < nearby.Length; i++)
             {
-                IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                if (interactable != null)
+                Collider2D candidateCollider = nearby[i];
+                if (candidateCollider == null)
+                    continue;
+
+                IInteractable candidateInteractable = candidateCollider.GetComponent<IInteractable>();
+                if (candidateInteractable == null)
+                    continue;
+
+                float candidateDistance = Vector2.Distance(transform.position, candidateCollider.transform.position);
+                if (candidateDistance < nearestDistance)
                 {
-                    interactable.Interact();
+                    nearestDistance = candidateDistance;
+                    nearestInteractable = candidateInteractable;
+                }
+            }
+
+            if (nearestInteractable != null)
+            {
+                nearestInteractable.Interact();
+            }
+            else
+            {
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, lastInteractionDirection, interactionDistance);
+                if (hit.collider != null)
+                {
+                    IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                    if (interactable != null)
+                        interactable.Interact();
                 }
             }
         }
@@ -150,13 +169,10 @@ public class PlayerController : MonoBehaviour
 
     void SetupFlashlight()
     {
-        if (playerCamera == null)
-            return;
-
         if (flashlight == null)
         {
             GameObject flashlightObject = new GameObject("Flashlight");
-            flashlightObject.transform.SetParent(playerCamera.transform);
+            flashlightObject.transform.SetParent(transform);
             flashlightObject.transform.localPosition = Vector3.zero;
             flashlightObject.transform.localRotation = Quaternion.identity;
 
@@ -175,17 +191,12 @@ public class PlayerController : MonoBehaviour
     public void DisableMovement()
     {
         canMove = false;
-        rb.linearVelocity = Vector3.zero;
+        rb.linearVelocity = Vector2.zero;
     }
 
     public void EnableMovement()
     {
         canMove = true;
-    }
-
-    public void SetCamera(Camera cam)
-    {
-        playerCamera = cam;
     }
 
     public float GetStaminaNormalized()

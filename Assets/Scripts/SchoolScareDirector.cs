@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CaveScareDirector : MonoBehaviour
+public class SchoolScareDirector : MonoBehaviour
 {
     private class ScarePoint
     {
-        public Vector3 position;
+        public Vector2 position;
         public float radius;
         public ScareType type;
         public bool triggered;
@@ -14,15 +14,14 @@ public class CaveScareDirector : MonoBehaviour
 
     private enum ScareType
     {
-        Rockfall,
-        Blackout,
+        DistantBang,
+        HallBlackout,
         Apparition
     }
 
     [SerializeField] private float globalCooldown = 6f;
 
     private readonly List<ScarePoint> scarePoints = new List<ScarePoint>();
-    private readonly List<Light> caveLights = new List<Light>();
 
     private Transform player;
     private GhostAI ghost;
@@ -37,7 +36,6 @@ public class CaveScareDirector : MonoBehaviour
         ghost = Object.FindFirstObjectByType<GhostAI>();
         playerCamera = Camera.main;
 
-        CacheCaveLights();
         SetupAudio();
         BuildScarePoints();
 
@@ -62,7 +60,7 @@ public class CaveScareDirector : MonoBehaviour
             if (point.triggered)
                 continue;
 
-            if (Vector3.Distance(player.position, point.position) <= point.radius)
+            if (Vector2.Distance(player.position, point.position) <= point.radius)
             {
                 point.triggered = true;
                 TriggerScare(point.type);
@@ -74,42 +72,9 @@ public class CaveScareDirector : MonoBehaviour
 
     void BuildScarePoints()
     {
-        scarePoints.Add(new ScarePoint
-        {
-            position = new Vector3(-2f, 1f, -2f),
-            radius = 3.2f,
-            type = ScareType.Rockfall,
-            triggered = false
-        });
-
-        scarePoints.Add(new ScarePoint
-        {
-            position = new Vector3(6f, 1f, 4f),
-            radius = 3.2f,
-            type = ScareType.Blackout,
-            triggered = false
-        });
-
-        scarePoints.Add(new ScarePoint
-        {
-            position = new Vector3(-12f, 1f, 12f),
-            radius = 3.5f,
-            type = ScareType.Apparition,
-            triggered = false
-        });
-    }
-
-    void CacheCaveLights()
-    {
-        caveLights.Clear();
-        Light[] allLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
-
-        for (int i = 0; i < allLights.Length; i++)
-        {
-            Light current = allLights[i];
-            if (current.name.StartsWith("Lamp_"))
-                caveLights.Add(current);
-        }
+        scarePoints.Add(new ScarePoint { position = new Vector2(11.3f, 1.1f), radius = 2.2f, type = ScareType.DistantBang, triggered = false });
+        scarePoints.Add(new ScarePoint { position = new Vector2(8.5f, -2.1f), radius = 2.3f, type = ScareType.HallBlackout, triggered = false });
+        scarePoints.Add(new ScarePoint { position = new Vector2(11.2f, -5.2f), radius = 2.4f, type = ScareType.Apparition, triggered = false });
     }
 
     void SetupAudio()
@@ -125,11 +90,11 @@ public class CaveScareDirector : MonoBehaviour
     {
         switch (scareType)
         {
-            case ScareType.Rockfall:
-                StartCoroutine(RockfallScare());
+            case ScareType.DistantBang:
+                StartCoroutine(DistantBangScare());
                 break;
-            case ScareType.Blackout:
-                StartCoroutine(BlackoutScare());
+            case ScareType.HallBlackout:
+                StartCoroutine(HallBlackoutScare());
                 break;
             case ScareType.Apparition:
                 StartCoroutine(ApparitionScare());
@@ -137,58 +102,31 @@ public class CaveScareDirector : MonoBehaviour
         }
     }
 
-    IEnumerator RockfallScare()
+    IEnumerator DistantBangScare()
     {
-        Debug.Log("⚠️ O teto da caverna treme...");
-        PlayClip(CreateRockfallClip(), 1f, 0.95f);
+        Debug.Log("⚠️ Um estrondo ecoa pelos corredores...");
+        PlayClip(CreateBangClip(), 1f, 0.95f);
 
         if (GameHUD.Instance != null)
-            GameHUD.Instance.TriggerJumpscare(0.25f, 0.45f);
+            GameHUD.Instance.TriggerJumpscare(0.25f, 0.35f);
 
-        yield return ShakeCamera(0.55f, 0.12f);
+        yield return ShakeCamera(0.45f, 0.18f);
     }
 
-    IEnumerator BlackoutScare()
+    IEnumerator HallBlackoutScare()
     {
-        Debug.Log("⚡ As tochas se apagam por um instante...");
+        Debug.Log("⚡ As luzes falham por um instante...");
         PlayClip(CreateShockHitClip(), 0.9f, 1f);
 
         if (GameHUD.Instance != null)
-            GameHUD.Instance.TriggerJumpscare(0.5f, 0.35f);
+            GameHUD.Instance.TriggerJumpscare(0.55f, 0.35f);
 
-        float[] originalIntensities = new float[caveLights.Count];
-        for (int i = 0; i < caveLights.Count; i++)
-        {
-            originalIntensities[i] = caveLights[i] != null ? caveLights[i].intensity : 0f;
-        }
-
-        for (int blink = 0; blink < 3; blink++)
-        {
-            for (int i = 0; i < caveLights.Count; i++)
-            {
-                if (caveLights[i] != null)
-                    caveLights[i].intensity = 0f;
-            }
-            yield return new WaitForSeconds(0.12f);
-
-            for (int i = 0; i < caveLights.Count; i++)
-            {
-                if (caveLights[i] != null)
-                    caveLights[i].intensity = originalIntensities[i] * Random.Range(0.5f, 0.9f);
-            }
-            yield return new WaitForSeconds(0.18f);
-        }
-
-        for (int i = 0; i < caveLights.Count; i++)
-        {
-            if (caveLights[i] != null)
-                caveLights[i].intensity = originalIntensities[i];
-        }
+        yield return ShakeCamera(0.35f, 0.09f);
     }
 
     IEnumerator ApparitionScare()
     {
-        Debug.Log("👻 Você viu algo no fim do túnel...");
+        Debug.Log("👻 Algo cruza o corredor ao longe...");
 
         if (GameHUD.Instance != null)
             GameHUD.Instance.TriggerJumpscare(0.75f, 0.3f);
@@ -197,16 +135,15 @@ public class CaveScareDirector : MonoBehaviour
 
         if (ghost != null && player != null)
         {
-            Vector3 ahead = player.position + player.forward * 6f;
-            Vector3 sideOffset = Vector3.Cross(Vector3.up, player.forward).normalized * Random.Range(-2.2f, 2.2f);
-            Vector3 apparitionPosition = ahead + sideOffset;
-            apparitionPosition.y = player.position.y;
+            Vector2 ahead = (Vector2)player.position + Vector2.up * 4f;
+            Vector2 sideOffset = Random.insideUnitCircle.normalized * Random.Range(1.2f, 2.2f);
+            Vector2 apparitionPosition = ahead + sideOffset;
 
-            ghost.transform.position = apparitionPosition;
+            ghost.transform.position = new Vector3(apparitionPosition.x, apparitionPosition.y, 0f);
         }
 
-        yield return new WaitForSeconds(0.4f);
-        yield return ShakeCamera(0.28f, 0.04f);
+        yield return new WaitForSeconds(0.35f);
+        yield return ShakeCamera(0.25f, 0.06f);
     }
 
     IEnumerator ShakeCamera(float duration, float amount)
@@ -215,23 +152,19 @@ public class CaveScareDirector : MonoBehaviour
             yield break;
 
         Transform camTransform = playerCamera.transform;
-        Vector3 originalPosition = camTransform.localPosition;
+        Vector3 originalPosition = camTransform.position;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float damper = 1f - Mathf.Clamp01(elapsed / duration);
-            Vector3 offset = new Vector3(
-                Random.Range(-amount, amount),
-                Random.Range(-amount, amount),
-                0f) * damper;
-
-            camTransform.localPosition = originalPosition + offset;
+            Vector2 offset2D = Random.insideUnitCircle * amount * damper;
+            camTransform.position = originalPosition + new Vector3(offset2D.x, offset2D.y, 0f);
             yield return null;
         }
 
-        camTransform.localPosition = originalPosition;
+        camTransform.position = originalPosition;
     }
 
     void PlayClip(AudioClip clip, float volume, float pitch)
@@ -243,23 +176,23 @@ public class CaveScareDirector : MonoBehaviour
         scareAudio.PlayOneShot(clip, volume);
     }
 
-    AudioClip CreateRockfallClip()
+    AudioClip CreateBangClip()
     {
         int sampleRate = 44100;
-        float duration = 1.4f;
+        float duration = 0.9f;
         int sampleCount = Mathf.RoundToInt(sampleRate * duration);
         float[] data = new float[sampleCount];
 
         for (int i = 0; i < sampleCount; i++)
         {
             float t = i / (float)sampleRate;
-            float envelope = Mathf.Clamp01(1f - (t / duration));
-            float lowRumble = Mathf.Sin(2f * Mathf.PI * 45f * t) * 0.22f;
-            float debrisNoise = (Mathf.PerlinNoise(t * 80f, 0.24f) - 0.5f) * 0.45f;
-            data[i] = (lowRumble + debrisNoise) * envelope;
+            float envelope = Mathf.Exp(-6f * t);
+            float rumble = Mathf.Sin(2f * Mathf.PI * 52f * t) * 0.3f;
+            float debrisNoise = (Mathf.PerlinNoise(t * 85f, 0.24f) - 0.5f) * 0.36f;
+            data[i] = (rumble + debrisNoise) * envelope;
         }
 
-        AudioClip clip = AudioClip.Create("RockfallScare", sampleCount, 1, sampleRate, false);
+        AudioClip clip = AudioClip.Create("DistantBang", sampleCount, 1, sampleRate, false);
         clip.SetData(data, 0);
         return clip;
     }

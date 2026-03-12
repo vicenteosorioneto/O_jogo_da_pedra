@@ -6,6 +6,7 @@ public class GameHUD : MonoBehaviour
 
     private GUIStyle labelStyle;
     private PlayerController playerController;
+    private ObjectiveArrowGuide objectiveGuide;
     private float jumpscareAlpha;
     private float jumpscareTimer;
 
@@ -31,12 +32,15 @@ public class GameHUD : MonoBehaviour
         };
 
         playerController = Object.FindFirstObjectByType<PlayerController>();
+        objectiveGuide = Object.FindFirstObjectByType<ObjectiveArrowGuide>();
     }
 
     void Update()
     {
         if (playerController == null)
             playerController = Object.FindFirstObjectByType<PlayerController>();
+        if (objectiveGuide == null)
+            objectiveGuide = Object.FindFirstObjectByType<ObjectiveArrowGuide>();
 
         if (jumpscareTimer > 0f)
         {
@@ -51,10 +55,33 @@ public class GameHUD : MonoBehaviour
     void OnGUI()
     {
         int fragments = GameManager.Instance != null ? GameManager.Instance.GetFragmentCount() : 0;
+        int nextLineY = 20;
 
-        GUI.Label(new Rect(20, 20, 500, 30), $"Fragmentos: {fragments}/3", labelStyle);
-        GUI.Label(new Rect(20, 50, 700, 30), "Objetivo: Colete os 3 fragmentos e faça o ritual no espelho", labelStyle);
-        GUI.Label(new Rect(20, 80, 700, 30), "Controles: WASD mover | Shift correr | E interagir | F lanterna | Esc mouse", labelStyle);
+        GUI.Label(new Rect(20, nextLineY, 500, 30), $"Fragmentos: {fragments}/3", labelStyle);
+        nextLineY += 30;
+
+        if (fragments < 3)
+        {
+            GUI.Label(new Rect(20, nextLineY, 1000, 30), "Objetivo 1: Siga as setas no chão para encontrar os 3 fragmentos", labelStyle);
+        }
+        else
+        {
+            GUI.Label(new Rect(20, nextLineY, 1000, 30), "Objetivo 2: Siga as setas até o Banheiro Feminino e use E no Espelho", labelStyle);
+        }
+        nextLineY += 30;
+
+        GUI.Label(new Rect(20, nextLineY, 1000, 30), "Dica: As setas mudam automaticamente para o próximo objetivo", labelStyle);
+        nextLineY += 30;
+
+        if (objectiveGuide != null && objectiveGuide.HasActiveTarget())
+        {
+            string objectiveText = objectiveGuide.GetCurrentObjectiveText();
+            float objectiveDistance = objectiveGuide.GetCurrentObjectiveDistance();
+            GUI.Label(new Rect(20, nextLineY, 1000, 30), $"Alvo atual: {objectiveText} ({objectiveDistance:0.0}m)", labelStyle);
+            nextLineY += 30;
+        }
+
+        GUI.Label(new Rect(20, nextLineY, 900, 30), "Controles: WASD mover | Shift correr | E interagir | F lanterna | Esc mouse", labelStyle);
 
         DrawStaminaBar();
 

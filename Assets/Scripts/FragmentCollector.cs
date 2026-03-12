@@ -9,7 +9,9 @@ public class FragmentCollector : MonoBehaviour, IInteractable
     void Start()
     {
         // Adicionar trigger ao collider
-        GetComponent<Collider>().isTrigger = true;
+        Collider2D triggerCollider = GetComponent<Collider2D>();
+        if (triggerCollider != null)
+            triggerCollider.isTrigger = true;
     }
 
     public void Interact()

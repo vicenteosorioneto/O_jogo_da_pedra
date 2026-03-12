@@ -6,7 +6,7 @@ public class PlayerAudioFeedback : MonoBehaviour
     [SerializeField] private float sprintStepInterval = 0.34f;
 
     private PlayerController playerController;
-    private Rigidbody rb;
+    private Rigidbody2D rb;
 
     private AudioSource footstepSource;
     private AudioSource breathingSource;
@@ -19,7 +19,7 @@ public class PlayerAudioFeedback : MonoBehaviour
     void Start()
     {
         playerController = GetComponent<PlayerController>();
-        rb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody2D>();
 
         footstepSource = gameObject.AddComponent<AudioSource>();
         footstepSource.spatialBlend = 0f;
@@ -51,7 +51,7 @@ public class PlayerAudioFeedback : MonoBehaviour
         if (playerController == null || rb == null)
             return;
 
-        float horizontalSpeed = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z).magnitude;
+        float horizontalSpeed = rb.linearVelocity.magnitude;
         bool moving = horizontalSpeed > 0.25f;
 
         float stamina = playerController.GetStaminaNormalized();

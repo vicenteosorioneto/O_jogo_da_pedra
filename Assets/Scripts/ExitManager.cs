@@ -6,7 +6,9 @@ public class ExitManager : MonoBehaviour, IInteractable
 
     void Start()
     {
-        GetComponent<Collider>().isTrigger = true;
+        Collider2D triggerCollider = GetComponent<Collider2D>();
+        if (triggerCollider != null)
+            triggerCollider.isTrigger = true;
     }
 
     public void Interact()
@@ -30,7 +32,7 @@ public class ExitManager : MonoBehaviour, IInteractable
         }
     }
 
-    void OnTriggerEnter(Collider collision)
+    void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player") && allowExit)
         {

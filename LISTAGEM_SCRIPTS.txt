@@ -1,142 +1,83 @@
 ╔═══════════════════════════════════════════════════════════════════╗
-║                      LISTAGEM DE SCRIPTS DO MVP                  ║
+║                 LISTAGEM DE SCRIPTS (VERSÃO 2D)                  ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
 📁 Assets/Scripts/
 
-┌─ CORE SCRIPTS ──────────────────────────────────────────────────┐
+┌─ CORE GAMEPLAY ─────────────────────────────────────────────────┐
 
 ✓ PlayerController.cs
-  └─ Controla movimento do jogador (WASD), rotação (Mouse)
-  └─ Gerencia interação (E key)
-  └─ Pode ser pausado (DisableMovement/EnableMovement)
-  └─ Dependências: Rigidbody, Camera
+  └─ Movimento 2D (WASD), sprint e stamina
+  └─ Interação por direção (tecla E)
+  └─ Toggle da lanterna (F)
+  └─ Dependências: Rigidbody2D
 
 ✓ GameManager.cs ⭐ [SINGLETON]
-  └─ Gerencia estado global do jogo
-  └─ Controla coleta de fragmentos
-  └─ Gerencia os 2 finais (bom/ruim)
-  └─ Pausa o jogo quando termina (Time.timeScale = 0)
-  └─ Método: GetFragmentCount(), HasAllFragments(), etc
+  └─ Estado global do jogo
+  └─ Contagem de fragmentos
+  └─ Controle dos finais bom/ruim
 
 ✓ InputManager.cs
-  └─ Gerencia input global
-  └─ Lock/Unlock mouse (ESC)
-  └─ Debug keys (F1, F2, F3)
+  └─ Input global (ESC, F1, F2, F3)
+  └─ Lock/Unlock do cursor para debug
 
-└────────────────────────────────────────────────────────────────────┘
+✓ GameHUD.cs
+  └─ HUD em tela (fragmentos, objetivo, controles)
+  └─ Barra de stamina
+  └─ Overlay de jumpscare
+
+└───────────────────────────────────────────────────────────────────┘
 
 ┌─ INTERAÇÃO ─────────────────────────────────────────────────────┐
 
 ✓ IInteractable.cs
   └─ Interface base para objetos interativos
-  └─ Método: Interact()
 
 ✓ FragmentCollector.cs [IMPLEMENTS IInteractable]
-  └─ Coleta um dos 3 fragmentos
-  └─ Ajustável: fragmentID (1, 2, 3), fragmentName
-  └─ Integra com GameManager
-  └─ Destrói-se após ser coletado
-
-✓ DocumentReader.cs [IMPLEMENTS IInteractable]
-  └─ Permite ler documentos (jornal, diário, etc)
-  └─ Pronto para implementação na Fase 2
-  └─ Ajustável: documentTitle, documentContent, documentID
+  └─ Coleta fragmentos e envia ao GameManager
 
 ✓ RitualManager.cs [IMPLEMENTS IInteractable]
-  └─ Controla o ritual final de aprisionamento
-  └─ Requer todos os 3 fragmentos
-  └─ Anima o ritual com delays
-  └─ Aciona Final Bom quando completa
+  └─ Inicia e conclui ritual final
 
 ✓ ExitManager.cs [IMPLEMENTS IInteractable]
-  └─ Controla saída da escola
-  └─ Se sair sem ritual → Final Ruim
-  └─ Se completou ritual → não deveria chegar aqui
+  └─ Resolve saída e final ruim
 
-└────────────────────────────────────────────────────────────────────┘
+✓ DocumentReader.cs [IMPLEMENTS IInteractable]
+  └─ Leitura de documentos (base pronta)
 
-┌─ INTELIGÊNCIA ARTIFICIAL ───────────────────────────────────────┐
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ IA, ÁUDIO E ATMOSFERA ────────────────────────────────────────┐
 
 ✓ GhostAI.cs
-  └─ IA de Maria Sangrenta
-  └─ Aparece aleatoriamente a cada 15 segundos
-  └─ Detecta jogador em 20m
-  └─ Persegue quando detectado
-  └─ Jumpscare quando chega perto (2m)
-  └─ Dependências: Rigidbody, Player transform
+  └─ Aparição e perseguição da Maria Sangrenta em 2D
+  └─ Jumpscare por proximidade
 
-└────────────────────────────────────────────────────────────────────┘
+✓ AtmosphereController.cs
+  └─ Camadas de ambiência (hum, creaks, heartbeat)
+  └─ Tensão baseada na distância para a entidade
 
-═══════════════════════════════════════════════════════════════════
+✓ SchoolScareDirector.cs
+  └─ Eventos de susto por área da escola
+  └─ Distant bang, blackout e apparition
 
-📊 TOTAL: 9 Scripts criados ✓
+✓ PlayerAudioFeedback.cs
+  └─ Passos dinâmicos
+  └─ Respiração baseada em stamina
 
-Status: MVP FUNCIONAL
+└───────────────────────────────────────────────────────────────────┘
 
-═══════════════════════════════════════════════════════════════════
+┌─ GERAÇÃO DE CENA ───────────────────────────────────────────────┐
 
-🔗 RELAÇÃO ENTRE SCRIPTS:
+✓ SceneGenerator.cs
+  └─ Monta automaticamente a escola abandonada 2D
+  └─ Cria player, HUD, inimiga, fragmentos, ritual e saída
+  └─ Instancia atmosfera e diretor de sustos
 
-                    GAMEMANAGER (Hub central)
-                         ↑ ↓
-        ┌────────────────────────────────────┐
-        ↓        ↓         ↓        ↓        ↓
-    PLAYER   FRAGMENTS  RITUAL   EXIT   GHOSTAI
-    (INPUT)  (ICollect) (Ritual) (Exit)  (Chase)
-        ↓        ↓         ↓
-    INPUTMGR  DOCUMENT
-              (Futuro)
+└───────────────────────────────────────────────────────────────────┘
 
-═══════════════════════════════════════════════════════════════════
+📊 STATUS
 
-🎯 FLUXO DE CHAMADAS:
-
-1. Start:
-   GameManager.Instance inicializa
-       ↓
-   Player spawna com PlayerController
-       ↓
-   GhostAI começa rotina de aparição
-       ↓
-   InputManager ativa (lock mouse)
-
-2. Gameplay:
-   Jogador move (PlayerController)
-       ↓
-   Jogador interage (E) → IInteractable.Interact()
-       ↓
-   Fragment → GameManager.CollectFragment()
-   Ritual → GameManager.StartRitual()
-   Exit → GameManager.EndGameGoodEnding/BadEnding()
-
-3. Finalização:
-   GameManager.CompleteRitual() ou GameManager.EndGameBadEnding()
-       ↓
-   Mensagens no Console
-   Time.timeScale = 0 (pausa tudo)
-
-═══════════════════════════════════════════════════════════════════
-
-⚙️  CONFIGURAÇÕES AJUSTÁVEIS (NO INSPECTOR):
-
-PlayerController:
-  • moveSpeed (default: 5)
-  • sprintSpeed (default: 8)
-  • interactionDistance (default: 3m)
-
-FragmentCollector:
-  • fragmentID (1, 2, ou 3)
-  • fragmentName (label visual)
-
-GhostAI:
-  • chaseSpeed (default: 6)
-  • detectionRange (default: 20m)
-  • jumpscareDistance (default: 2m)
-  • appearanceInterval (default: 15s)
-
-RitualManager:
-  • ritualDuration (default: 5s)
-  • ritualLight (assign Light aqui)
-
-═══════════════════════════════════════════════════════════════════
+✓ Arquitetura alinhada para 2D
+✓ Cenário alinhado para escola abandonada
+✓ Nome atualizado: SchoolScareDirector

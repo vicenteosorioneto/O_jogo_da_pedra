@@ -10,14 +10,14 @@ public class GhostAI : MonoBehaviour
     [SerializeField] private float appearanceInterval = 15f;
     [SerializeField] private float jumpscareCooldown = 1.5f;
 
-    private Rigidbody rb;
+    private Rigidbody2D rb;
     private bool isChasing = false;
     private float timeSinceLastAppearance = 0f;
     private float lastJumpscareTime = -999f;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody2D>();
         if (player == null)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
@@ -26,7 +26,7 @@ public class GhostAI : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (player == null || GameManager.Instance.IsGameEnded())
+        if (player == null || GameManager.Instance == null || GameManager.Instance.IsGameEnded())
             return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -44,13 +44,13 @@ public class GhostAI : MonoBehaviour
         else
         {
             isChasing = false;
-            rb.linearVelocity = Vector3.zero;
+            rb.linearVelocity = Vector2.zero;
         }
     }
 
     void ChasePlayer()
     {
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        Vector2 directionToPlayer = ((Vector2)player.position - (Vector2)transform.position).normalized;
         rb.linearVelocity = directionToPlayer * chaseSpeed;
     }
 
@@ -84,14 +84,14 @@ public class GhostAI : MonoBehaviour
 
     IEnumerator RandomAppearances()
     {
-        while (!GameManager.Instance.IsGameEnded())
+        while (GameManager.Instance != null && !GameManager.Instance.IsGameEnded())
         {
             yield return new WaitForSeconds(appearanceInterval);
 
-            if (!isChasing)
+            if (!isChasing && player != null)
             {
-                Vector3 randomPosition = player.position + Random.insideUnitSphere * 10f;
-                randomPosition.y = player.position.y;
+                Vector2 randomOffset = Random.insideUnitCircle * 10f;
+                Vector3 randomPosition = player.position + new Vector3(randomOffset.x, randomOffset.y, 0f);
                 transform.position = randomPosition;
                 Debug.Log("👻 Você sente uma presença ao seu redor...");
             }

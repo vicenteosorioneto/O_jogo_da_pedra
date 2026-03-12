@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AtmosphereController : MonoBehaviour
@@ -14,16 +13,13 @@ public class AtmosphereController : MonoBehaviour
 
     private Transform player;
     private GhostAI ghost;
-    private readonly List<Light> flickerLights = new List<Light>();
 
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
         ghost = Object.FindFirstObjectByType<GhostAI>();
 
-        CacheFlickerLights();
         SetupAudio();
-
         StartCoroutine(AmbientEventsRoutine());
     }
 
@@ -35,20 +31,6 @@ public class AtmosphereController : MonoBehaviour
             ghost = Object.FindFirstObjectByType<GhostAI>();
 
         UpdateHeartbeatByDistance();
-    }
-
-    void CacheFlickerLights()
-    {
-        flickerLights.Clear();
-        Light[] allLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
-        for (int i = 0; i < allLights.Length; i++)
-        {
-            Light currentLight = allLights[i];
-            if (currentLight.type == LightType.Point && currentLight.name.StartsWith("Lamp_"))
-            {
-                flickerLights.Add(currentLight);
-            }
-        }
     }
 
     void SetupAudio()
@@ -80,39 +62,14 @@ public class AtmosphereController : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(Random.Range(8f, 16f));
+            yield return new WaitForSeconds(Random.Range(8f, 15f));
 
-            if (eventSource != null)
-            {
-                eventSource.pitch = Random.Range(0.88f, 1.08f);
-                eventSource.PlayOneShot(CreateCreakClip(), Random.Range(0.65f, 1f));
-            }
+            if (eventSource == null)
+                continue;
 
-            if (flickerLights.Count > 0)
-            {
-                int index = Random.Range(0, flickerLights.Count);
-                StartCoroutine(FlickerLight(flickerLights[index]));
-            }
+            eventSource.pitch = Random.Range(0.88f, 1.08f);
+            eventSource.PlayOneShot(CreateCreakClip(), Random.Range(0.65f, 1f));
         }
-    }
-
-    IEnumerator FlickerLight(Light target)
-    {
-        if (target == null)
-            yield break;
-
-        float originalIntensity = target.intensity;
-        int blinks = Random.Range(2, 5);
-
-        for (int i = 0; i < blinks; i++)
-        {
-            target.intensity = originalIntensity * Random.Range(0.05f, 0.35f);
-            yield return new WaitForSeconds(Random.Range(0.04f, 0.09f));
-            target.intensity = originalIntensity;
-            yield return new WaitForSeconds(Random.Range(0.05f, 0.13f));
-        }
-
-        target.intensity = originalIntensity;
     }
 
     void UpdateHeartbeatByDistance()
@@ -120,11 +77,11 @@ public class AtmosphereController : MonoBehaviour
         if (heartbeatSource == null || player == null || ghost == null)
             return;
 
-        float distance = Vector3.Distance(player.position, ghost.transform.position);
-        float tension = Mathf.InverseLerp(12f, 1.8f, distance);
+        float distance = Vector2.Distance(player.position, ghost.transform.position);
+        float tension = Mathf.InverseLerp(10f, 1.25f, distance);
 
         float targetVolume = tension * heartbeatMaxVolume;
-        heartbeatSource.volume = Mathf.MoveTowards(heartbeatSource.volume, targetVolume, Time.deltaTime * 0.8f);
+        heartbeatSource.volume = Mathf.MoveTowards(heartbeatSource.volume, targetVolume, Time.deltaTime * 0.85f);
         heartbeatSource.pitch = Mathf.Lerp(0.9f, 1.25f, tension);
     }
 
