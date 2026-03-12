@@ -38,6 +38,9 @@ public class SceneGenerator : MonoBehaviour
         // Criar InputManager
         CreateInputManager();
 
+        // Criar HUD
+        CreateHUD();
+
         // Criar Fragmentos (3x)
         CreateFragments();
 
@@ -65,13 +68,27 @@ public class SceneGenerator : MonoBehaviour
 
     void CreateLighting()
     {
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.35f, 0.35f, 0.4f);
+        RenderSettings.fog = true;
+        RenderSettings.fogColor = new Color(0.08f, 0.08f, 0.1f);
+        RenderSettings.fogDensity = 0.015f;
+
         // Directional Light (sol/lua)
         GameObject lightObj = new GameObject("Directional Light");
         Light light = lightObj.AddComponent<Light>();
         light.type = LightType.Directional;
-        light.intensity = 0.4f;
+        light.intensity = 0.9f;
         light.color = new Color(0.7f, 0.7f, 0.9f); // Azul assustador
         lightObj.transform.rotation = Quaternion.Euler(45, 0, 0);
+
+        GameObject fillLightObj = new GameObject("Fill Light");
+        Light fillLight = fillLightObj.AddComponent<Light>();
+        fillLight.type = LightType.Point;
+        fillLight.intensity = 1.5f;
+        fillLight.range = 30f;
+        fillLight.color = new Color(0.75f, 0.75f, 0.85f);
+        fillLightObj.transform.position = new Vector3(0, 3, 0);
 
         Debug.Log("✓ Iluminação criada");
     }
@@ -90,6 +107,7 @@ public class SceneGenerator : MonoBehaviour
         CreateWall("WallS", new Vector3(0, 2, -5), new Vector3(10, 4, 1));
         CreateWall("WallE", new Vector3(5, 2, 0), new Vector3(1, 4, 10));
         CreateWall("WallW", new Vector3(-5, 2, 0), new Vector3(1, 4, 10));
+        CreateWall("Ceiling", new Vector3(0, 4, 0), new Vector3(10, 1, 10));
 
         Debug.Log("✓ Ambiente criado");
     }
@@ -124,10 +142,12 @@ public class SceneGenerator : MonoBehaviour
         // Camera filho
         GameObject camera = new GameObject("PlayerCamera");
         camera.transform.parent = player.transform;
-        camera.transform.localPosition = new Vector3(0, 0.6f, 0);
+        camera.transform.localPosition = new Vector3(0, 0.85f, 0);
         camera.transform.localRotation = Quaternion.identity;
 
         Camera cam = camera.AddComponent<Camera>();
+        cam.fieldOfView = 75f;
+        cam.nearClipPlane = 0.03f;
         camera.AddComponent<AudioListener>();
 
         // Assignar no PlayerController
@@ -137,7 +157,8 @@ public class SceneGenerator : MonoBehaviour
         if (playerCameraField != null)
             playerCameraField.SetValue(pc, cam);
 
-        player.transform.position = new Vector3(0, 1, -3);
+        player.transform.position = new Vector3(0, 1, 0);
+        player.transform.rotation = Quaternion.Euler(0, 180, 0);
 
         Debug.Log("✓ Player criado");
     }
@@ -156,6 +177,14 @@ public class SceneGenerator : MonoBehaviour
         im.AddComponent<InputManager>();
 
         Debug.Log("✓ InputManager criado");
+    }
+
+    void CreateHUD()
+    {
+        GameObject hud = new GameObject("GameHUD");
+        hud.AddComponent<GameHUD>();
+
+        Debug.Log("✓ HUD criado");
     }
 
     void CreateFragments()

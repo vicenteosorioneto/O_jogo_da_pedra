@@ -8,10 +8,12 @@ public class GhostAI : MonoBehaviour
     [SerializeField] private float detectionRange = 20f;
     [SerializeField] private float jumpscareDistance = 2f;
     [SerializeField] private float appearanceInterval = 15f;
+    [SerializeField] private float jumpscareCooldown = 1.5f;
 
     private Rigidbody rb;
     private bool isChasing = false;
     private float timeSinceLastAppearance = 0f;
+    private float lastJumpscareTime = -999f;
 
     void Start()
     {
@@ -54,8 +56,18 @@ public class GhostAI : MonoBehaviour
 
     void Jumpscare()
     {
+        if (Time.time < lastJumpscareTime + jumpscareCooldown)
+            return;
+
+        lastJumpscareTime = Time.time;
+
         Debug.Log("👻 MARIA SANGRENTA!!!");
         Debug.Log("Pressione movimento para correr!");
+
+        if (GameHUD.Instance != null)
+        {
+            GameHUD.Instance.TriggerJumpscare(0.75f, 0.25f);
+        }
         
         // Efeito visual (piscar)
         StartCoroutine(FlashEffect());
