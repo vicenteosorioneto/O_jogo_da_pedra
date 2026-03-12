@@ -50,6 +50,9 @@ public class SceneGenerator : MonoBehaviour
         // Criar Atmosfera dinâmica
         CreateAtmosphereController();
 
+        // Criar diretor de sustos por área
+        CreateScareDirector();
+
         // Criar Espelho (Ritual)
         CreateMirror();
 
@@ -72,56 +75,219 @@ public class SceneGenerator : MonoBehaviour
     void CreateLighting()
     {
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.35f, 0.35f, 0.4f);
+        RenderSettings.ambientLight = new Color(0.08f, 0.09f, 0.11f);
         RenderSettings.fog = true;
-        RenderSettings.fogColor = new Color(0.08f, 0.08f, 0.1f);
-        RenderSettings.fogDensity = 0.015f;
+        RenderSettings.fogColor = new Color(0.04f, 0.045f, 0.05f);
+        RenderSettings.fogDensity = 0.032f;
 
         // Directional Light (sol/lua)
         GameObject lightObj = new GameObject("Directional Light");
         Light light = lightObj.AddComponent<Light>();
         light.type = LightType.Directional;
-        light.intensity = 0.9f;
-        light.color = new Color(0.7f, 0.7f, 0.9f); // Azul assustador
-        lightObj.transform.rotation = Quaternion.Euler(45, 0, 0);
+        light.intensity = 0.18f;
+        light.color = new Color(0.35f, 0.42f, 0.6f); // Azul frio distante
+        lightObj.transform.rotation = Quaternion.Euler(22, -35, 0);
 
         GameObject fillLightObj = new GameObject("Fill Light");
         Light fillLight = fillLightObj.AddComponent<Light>();
         fillLight.type = LightType.Point;
-        fillLight.intensity = 1.5f;
-        fillLight.range = 30f;
-        fillLight.color = new Color(0.75f, 0.75f, 0.85f);
-        fillLightObj.transform.position = new Vector3(0, 3, 0);
+        fillLight.intensity = 0.45f;
+        fillLight.range = 55f;
+        fillLight.color = new Color(0.22f, 0.28f, 0.35f);
+        fillLightObj.transform.position = new Vector3(0, 6, 0);
 
         Debug.Log("✓ Iluminação criada");
     }
 
     void CreateEnvironment()
     {
-        // Chão
-        GameObject ground = new GameObject("Ground");
+        GameObject cave = new GameObject("CaveEnvironment");
+
+        // Base da caverna
+        GameObject ground = new GameObject("CaveGround");
         ground.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Plane.fbx");
-        ground.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.2f, 0.2f, 0.2f));
+        ground.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.1f, 0.1f, 0.1f));
         ground.AddComponent<BoxCollider>();
-        ground.transform.localScale = new Vector3(24, 1, 24);
+        ground.transform.localScale = new Vector3(34, 1, 34);
+        ground.transform.SetParent(cave.transform);
 
-        // Paredes simples
-        CreateWall("WallN", new Vector3(0, 2, 12), new Vector3(24, 4, 1));
-        CreateWall("WallS", new Vector3(0, 2, -12), new Vector3(24, 4, 1));
-        CreateWall("WallE", new Vector3(12, 2, 0), new Vector3(1, 4, 24));
-        CreateWall("WallW", new Vector3(-12, 2, 0), new Vector3(1, 4, 24));
-        CreateWall("Ceiling", new Vector3(0, 4, 0), new Vector3(24, 1, 24));
+        // Limites invisíveis + casca irregular da caverna
+        CreateBoundaryCollider("CaveWallN", new Vector3(0, 4, 17), new Vector3(34, 8, 1));
+        CreateBoundaryCollider("CaveWallS", new Vector3(0, 4, -17), new Vector3(34, 8, 1));
+        CreateBoundaryCollider("CaveWallE", new Vector3(17, 4, 0), new Vector3(1, 8, 34));
+        CreateBoundaryCollider("CaveWallW", new Vector3(-17, 4, 0), new Vector3(1, 8, 34));
+        CreateBoundaryCollider("CaveCeiling", new Vector3(0, 8, 0), new Vector3(34, 1, 34));
 
-        CreateFloorTiles();
-        CreateCorridorSections();
-        CreateInteriorLayout();
-        CreateBathroomZone();
-        CreateClassroomProps();
-        CreateWallDetails();
-        CreateCeilingLamps();
-        CreateDebrisAndStains();
+        CreateCaveShell();
+
+        CreateMainTunnelPath();
+        CreateSideChambers();
+        CreateRockClusters();
+        CreateStalagmitesAndStalactites();
+        CreateCaveLights();
+        CreateMistZones();
 
         Debug.Log("✓ Ambiente criado");
+    }
+
+    void CreateBoundaryCollider(string name, Vector3 position, Vector3 scale)
+    {
+        GameObject boundary = new GameObject(name);
+        BoxCollider collider = boundary.AddComponent<BoxCollider>();
+        collider.size = scale;
+        boundary.transform.position = position;
+    }
+
+    void CreateCaveShell()
+    {
+        GameObject shell = new GameObject("CaveShell");
+
+        for (int i = 0; i < 120; i++)
+        {
+            float side = Random.value;
+            Vector3 position;
+
+            if (side < 0.25f)
+                position = new Vector3(Random.Range(-16f, 16f), Random.Range(1.5f, 7.2f), 16.5f + Random.Range(-1f, 1f));
+            else if (side < 0.5f)
+                position = new Vector3(Random.Range(-16f, 16f), Random.Range(1.5f, 7.2f), -16.5f + Random.Range(-1f, 1f));
+            else if (side < 0.75f)
+                position = new Vector3(16.5f + Random.Range(-1f, 1f), Random.Range(1.5f, 7.2f), Random.Range(-16f, 16f));
+            else
+                position = new Vector3(-16.5f + Random.Range(-1f, 1f), Random.Range(1.5f, 7.2f), Random.Range(-16f, 16f));
+
+            GameObject rock = CreatePropCube(
+                $"ShellRock_{i}",
+                position,
+                new Vector3(Random.Range(1.4f, 3.8f), Random.Range(1.6f, 4.5f), Random.Range(1.4f, 3.8f)),
+                new Color(0.09f, 0.09f, 0.1f),
+                false);
+            rock.transform.rotation = Random.rotation;
+            rock.transform.SetParent(shell.transform);
+        }
+    }
+
+    void CreateMainTunnelPath()
+    {
+        GameObject tunnels = new GameObject("MainTunnels");
+
+        CreatePropCube("TunnelA", new Vector3(-10f, 1.2f, -8f), new Vector3(9f, 2.4f, 4f), new Color(0.13f, 0.13f, 0.15f), false).transform.SetParent(tunnels.transform);
+        CreatePropCube("TunnelB", new Vector3(0f, 1.2f, -3f), new Vector3(12f, 2.4f, 4f), new Color(0.13f, 0.13f, 0.15f), false).transform.SetParent(tunnels.transform);
+        CreatePropCube("TunnelC", new Vector3(8f, 1.2f, 5f), new Vector3(6f, 2.4f, 8f), new Color(0.13f, 0.13f, 0.15f), false).transform.SetParent(tunnels.transform);
+
+        // Paredes internas para curvar caminho
+        CreatePropCube("RockWallA", new Vector3(-4f, 2f, -5f), new Vector3(2f, 4f, 10f), new Color(0.09f, 0.09f, 0.11f)).transform.SetParent(tunnels.transform);
+        CreatePropCube("RockWallB", new Vector3(4f, 2f, 0f), new Vector3(2f, 4f, 10f), new Color(0.09f, 0.09f, 0.11f)).transform.SetParent(tunnels.transform);
+        CreatePropCube("RockWallC", new Vector3(11f, 2f, 2f), new Vector3(6f, 4f, 2f), new Color(0.09f, 0.09f, 0.11f)).transform.SetParent(tunnels.transform);
+    }
+
+    void CreateSideChambers()
+    {
+        GameObject chambers = new GameObject("SideChambers");
+
+        CreatePropCube("ChamberWest", new Vector3(-12f, 1.5f, 7f), new Vector3(8f, 3f, 8f), new Color(0.12f, 0.11f, 0.13f), false).transform.SetParent(chambers.transform);
+        CreatePropCube("ChamberEast", new Vector3(12f, 1.5f, -10f), new Vector3(8f, 3f, 8f), new Color(0.12f, 0.11f, 0.13f), false).transform.SetParent(chambers.transform);
+        CreatePropCube("RitualChamber", new Vector3(-13f, 1.5f, 13f), new Vector3(6f, 3f, 6f), new Color(0.13f, 0.11f, 0.13f), false).transform.SetParent(chambers.transform);
+    }
+
+    void CreateRockClusters()
+    {
+        GameObject rocks = new GameObject("RockClusters");
+        Mesh cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+        Mesh capsuleMesh = Resources.GetBuiltinResource<Mesh>("Capsule.fbx");
+
+        for (int i = 0; i < 140; i++)
+        {
+            float x = Random.Range(-16f, 16f);
+            float z = Random.Range(-16f, 16f);
+
+            if (IsPathZone(x, z) && Random.value > 0.2f)
+                continue;
+
+            GameObject rock = new GameObject($"Rock_{i}");
+            rock.AddComponent<MeshFilter>().mesh = Random.value > 0.5f ? cubeMesh : capsuleMesh;
+            rock.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.11f, 0.11f, 0.12f));
+
+            float y = Random.Range(0.2f, 1.2f);
+            float size = Random.Range(0.6f, 2.4f);
+
+            rock.transform.position = new Vector3(x, y, z);
+            rock.transform.localScale = new Vector3(size * Random.Range(0.7f, 1.4f), size * Random.Range(0.5f, 1.2f), size * Random.Range(0.7f, 1.4f));
+            rock.transform.rotation = Random.rotation;
+            rock.transform.SetParent(rocks.transform);
+        }
+    }
+
+    bool IsPathZone(float x, float z)
+    {
+        bool nearSpawnPath = z < -4f && x < -2f;
+        bool nearCenterPath = Mathf.Abs(z + 3f) < 3.8f && Mathf.Abs(x) < 8f;
+        bool nearUpperPath = x > 3f && z > 0f;
+        bool nearRitualChamber = x < -9f && z > 8f;
+
+        return nearSpawnPath || nearCenterPath || nearUpperPath || nearRitualChamber;
+    }
+
+    void CreateStalagmitesAndStalactites()
+    {
+        GameObject spikes = new GameObject("CaveSpikes");
+
+        for (int i = 0; i < 36; i++)
+        {
+            float x = Random.Range(-15f, 15f);
+            float z = Random.Range(-15f, 15f);
+
+            GameObject bottomSpike = CreatePropCube($"Stalagmite_{i}", new Vector3(x, 0.8f, z), new Vector3(Random.Range(0.4f, 1f), Random.Range(1f, 2.6f), Random.Range(0.4f, 1f)), new Color(0.12f, 0.12f, 0.13f));
+            bottomSpike.transform.SetParent(spikes.transform);
+
+            GameObject topSpike = CreatePropCube($"Stalactite_{i}", new Vector3(x + Random.Range(-0.4f, 0.4f), 7.2f, z + Random.Range(-0.4f, 0.4f)), new Vector3(Random.Range(0.35f, 0.8f), Random.Range(1.2f, 2.5f), Random.Range(0.35f, 0.8f)), new Color(0.1f, 0.1f, 0.11f));
+            topSpike.transform.SetParent(spikes.transform);
+        }
+    }
+
+    void CreateCaveLights()
+    {
+        GameObject caveLights = new GameObject("CaveLights");
+
+        CreateLamp("Lamp_0", new Vector3(-9f, 2.2f, -7f), 1.4f, new Color(1f, 0.56f, 0.25f), caveLights.transform);
+        CreateLamp("Lamp_1", new Vector3(-2f, 2.2f, -2f), 1.2f, new Color(1f, 0.6f, 0.28f), caveLights.transform);
+        CreateLamp("Lamp_2", new Vector3(6f, 2.2f, 4f), 1.1f, new Color(0.95f, 0.58f, 0.24f), caveLights.transform);
+        CreateLamp("Lamp_3", new Vector3(12f, 2.2f, -10f), 1.3f, new Color(0.9f, 0.5f, 0.22f), caveLights.transform);
+        CreateLamp("Lamp_4", new Vector3(-13f, 2.2f, 12f), 1.55f, new Color(0.22f, 0.85f, 0.45f), caveLights.transform);
+    }
+
+    void CreateMistZones()
+    {
+        CreateMistEmitter("MistZone_1", new Vector3(-3f, 0.4f, -2f), new Vector3(7f, 1f, 6f));
+        CreateMistEmitter("MistZone_2", new Vector3(8f, 0.4f, 4f), new Vector3(5f, 1f, 8f));
+        CreateMistEmitter("MistZone_3", new Vector3(-12f, 0.4f, 11f), new Vector3(4f, 1f, 4f));
+    }
+
+    void CreateMistEmitter(string name, Vector3 position, Vector3 area)
+    {
+        GameObject mist = new GameObject(name);
+        mist.transform.position = position;
+
+        ParticleSystem ps = mist.AddComponent<ParticleSystem>();
+        var main = ps.main;
+        main.startLifetime = 8f;
+        main.startSpeed = 0.25f;
+        main.startSize = 1.8f;
+        main.startColor = new Color(0.8f, 0.84f, 0.9f, 0.15f);
+        main.maxParticles = 180;
+        main.loop = true;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 18f;
+
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        shape.scale = area;
+
+        var velocityOverLifetime = ps.velocityOverLifetime;
+        velocityOverLifetime.enabled = true;
+        velocityOverLifetime.x = 0.05f;
+        velocityOverLifetime.z = 0.08f;
     }
 
     void CreateWall(string name, Vector3 position, Vector3 scale)
@@ -430,7 +596,7 @@ public class SceneGenerator : MonoBehaviour
         {
             GameObject fragment = new GameObject($"Fragment_{i + 1}");
             
-            fragment.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+            fragment.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
             fragment.AddComponent<MeshRenderer>().material = fragmentMat;
             
             SphereCollider collider = fragment.AddComponent<SphereCollider>();
@@ -444,7 +610,8 @@ public class SceneGenerator : MonoBehaviour
                 fragmentIdField.SetValue(fc, i + 1);
 
             fragment.transform.position = positions[i];
-            fragment.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
+            fragment.transform.localScale = new Vector3(0.2f, 0.5f, 0.08f);
+            fragment.transform.rotation = Quaternion.Euler(Random.Range(-20f, 20f), Random.Range(0f, 360f), Random.Range(-20f, 20f));
         }
 
         Debug.Log("✓ 3 Fragmentos criados");
@@ -454,8 +621,8 @@ public class SceneGenerator : MonoBehaviour
     {
         GameObject ghost = new GameObject("MariasSangrenta");
         
-        ghost.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-        ghost.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.5f, 0, 0)); // Vermelho escuro
+        ghost.AddComponent<MeshFilter>().mesh = Resources.GetBuiltinResource<Mesh>("Capsule.fbx");
+        ghost.AddComponent<MeshRenderer>().material = CreateDefaultMaterial(new Color(0.12f, 0.03f, 0.03f));
 
         CapsuleCollider collider = ghost.AddComponent<CapsuleCollider>();
         collider.height = 2;
@@ -472,7 +639,16 @@ public class SceneGenerator : MonoBehaviour
             playerField.SetValue(ghostAI, playerTransform);
 
         ghost.transform.position = new Vector3(10, 1, 10);
-        ghost.transform.localScale = new Vector3(0.8f, 2, 0.8f);
+        ghost.transform.localScale = new Vector3(0.7f, 1.8f, 0.7f);
+
+        GameObject eyeLight = new GameObject("GhostEyeLight");
+        eyeLight.transform.SetParent(ghost.transform);
+        eyeLight.transform.localPosition = new Vector3(0f, 0.55f, 0.2f);
+        Light ghostLight = eyeLight.AddComponent<Light>();
+        ghostLight.type = LightType.Point;
+        ghostLight.range = 4f;
+        ghostLight.intensity = 0.7f;
+        ghostLight.color = new Color(0.8f, 0.05f, 0.05f);
 
         Debug.Log("✓ Maria Sangrenta criada");
     }
@@ -482,6 +658,17 @@ public class SceneGenerator : MonoBehaviour
         GameObject atmosphere = new GameObject("AtmosphereController");
         atmosphere.AddComponent<AtmosphereController>();
         Debug.Log("✓ Atmosfera dinâmica criada");
+    }
+
+    void CreateScareDirector()
+    {
+        GameObject scareDirector = new GameObject("CaveScareDirector");
+        System.Type scareType = System.Type.GetType("CaveScareDirector")
+            ?? System.Type.GetType("CaveScareDirector, Assembly-CSharp");
+
+        if (scareType != null)
+            scareDirector.AddComponent(scareType);
+        Debug.Log("✓ Diretor de sustos criado");
     }
 
     void CreateMirror()
